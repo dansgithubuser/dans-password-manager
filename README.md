@@ -34,6 +34,8 @@ A free, open-source, easy-to-deploy, web-based password manager for teams.
 	- verify + invite
 	- revoke + rotate
 - digest notes into arch docs
+	- for sharing accounts to avoid having to make a team on that service
+	- a convenience, not a security measure
 
 ## Notes
 ```
