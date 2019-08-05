@@ -118,3 +118,13 @@ class SmokeTestCase(TestCase):
         # regular cannot invite
         response = invitee_client.post('/invite', invite_args(verification_value))
         self.assertEqual(response.status_code, 403)
+        # regular cannot revoke
+        response = invitee_client.post('/revoke', {'user': user.id, 'team': team.id})
+        self.assertEqual(response.status_code, 403)
+        # adversary cannot revoke
+        response = adversary.post('/revoke', {'user': user.id, 'team': team.id})
+        self.assertEqual(response.status_code, 404)
+        # revoke
+        response = client.post('/revoke', {'user': invitee.id, 'team': team.id})
+        self.assertEqual(response.status_code, 204)
+        self.assertEqual(models.Membership.objects.filter(user=invitee, team=team).count(), 0)

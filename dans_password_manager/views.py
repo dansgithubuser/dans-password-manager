@@ -99,3 +99,15 @@ def invite(request):
         team_secret=request.POST['teamSecret'],
     )
     return HttpResponse(status=201)
+
+def revoke(request):
+    membership = models.Membership.objects.filter(user=request.user, team_id=request.POST['team'])
+    if membership.count() != 1:
+        return HttpResponse(status=404)
+    if not membership[0].admin:
+        return HttpResponse(status=403)
+    models.Membership.objects.filter(
+        user_id=request.POST['user'],
+        team_id=request.POST['team'],
+    ).delete()
+    return HttpResponse(status=204)
