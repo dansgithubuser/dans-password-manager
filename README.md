@@ -18,9 +18,21 @@ A free, open-source, easy-to-deploy, web-based password manager for teams.
 - Clipperz -- "The open source version of Clipperz is suitable for testing and educational purposes only."
 
 ## todo
-- implement backend
-	- revoke
+- implement frontend crypto
+	- signup
+	- log in
+	- create team
+	- add/update item
+	- view item
+	- invite
+	- rotate
 - vuetify frontend
+	- signup
+	- log in
+	- teams
+	- items
+	- verify + invite
+	- revoke + rotate
 - digest notes into arch docs
 
 ## Notes
