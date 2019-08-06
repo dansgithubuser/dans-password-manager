@@ -1,9 +1,9 @@
 <template>
-  <div>
-    username<input type='text' v-model='signupUsername'><br>
-    password<input type='test' v-model='signupPassword'><br>
-    <input type='button' value='signup' @click='signup'>
-  </div>
+  <v-container>
+    <v-text-field v-model='signupUsername' label='username'/>
+    <v-text-field v-model='signupPassword' label='password'/>
+    <v-btn @click='signup'>signup</v-btn>
+  </v-container>
 </template>
 
 <script>

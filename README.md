@@ -18,7 +18,7 @@ A free, open-source, easy-to-deploy, web-based password manager for teams.
 - Clipperz -- "The open source version of Clipperz is suitable for testing and educational purposes only."
 
 ## todo
-- implement frontend crypto
+- implement frontend crypto - https://wwwtyro.github.io/cryptico/
 	- signup
 	- log in
 	- create team
