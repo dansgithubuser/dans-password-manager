@@ -16,7 +16,7 @@ if args.frontend_build:
     djangogo.invoke('npm', 'run', 'build')
     os.chdir('..')
     dst = os.path.join('dans_password_manager', 'static', 'dans_password_manager')
-    shutil.rmtree(dst)
+    shutil.rmtree(dst, ignore_errors=True)
     shutil.copytree(os.path.join('frontend', 'dist'), dst)
 else: djangogo.main(args,
     project='proj_dans_password_manager',

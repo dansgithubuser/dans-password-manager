@@ -7,7 +7,7 @@
 </template>
 
 <script>
-import axios from 'axios'
+import api from '../api.js'
 
 export default {
   name: 'Main',
@@ -17,7 +17,7 @@ export default {
   }),
   methods: {
     signup () {
-      console.log(axios.get('http://localhost:8000/static/dans_password_manager/index.html'));
+      api.signup(this.signupUsername, this.signupPassword);
     },
   },
 }
