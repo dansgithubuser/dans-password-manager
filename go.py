@@ -8,13 +8,12 @@ sys.path.append(os.path.join(DIR, 'deps'))
 import djangogo
 
 parser = djangogo.make_parser()
-parser.add_argument('--frontend-build', '--fb', action='store_true')
+parser.add_argument('--frontend-run', '--fr', action='store_true')
 args = parser.parse_args()
 
-if args.frontend_build:
+if args.frontend_run:
     os.chdir('frontend')
-    djangogo.invoke('npm', 'run', 'build')
-    os.chdir('..')
+    djangogo.invoke('npm', 'run', 'serve')
 else: djangogo.main(args,
     project='proj_dans_password_manager',
     app='dans_password_manager',
