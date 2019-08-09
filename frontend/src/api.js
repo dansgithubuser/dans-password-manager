@@ -4,6 +4,9 @@ const api = axios.create({
   baseURL: 'http://localhost:8080/api/',
 });
 
+api.defaults.xsrfHeaderName = 'X-CSRFToken';
+api.defaults.xsrfCookieName = 'csrftoken';
+
 export default {
   signup (username, password, password_confirmation) {
     const params = new URLSearchParams();
@@ -14,4 +17,7 @@ export default {
     params.append('privateKey', 'priv');
     return api.post('signup', params);
   },
+  login (username, password) {
+    return api.post('login', { username, password });
+  }
 };
