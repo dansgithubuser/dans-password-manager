@@ -2,6 +2,7 @@
   <v-container>
     <v-text-field v-model='signupUsername' label='username'/>
     <v-text-field v-model='signupPassword' label='password'/>
+    <v-text-field v-model='signupPasswordConfirmation' label='confirm password'/>
     <v-btn @click='signup'>signup</v-btn>
   </v-container>
 </template>
@@ -14,10 +15,11 @@ export default {
   data: () => ({
     signupUsername: '',
     signupPassword: '',
+    signupPasswordConfirmation: '',
   }),
   methods: {
     signup () {
-      api.signup(this.signupUsername, this.signupPassword);
+      api.signup(this.signupUsername, this.signupPassword, this.signupPasswordConfirmation);
     },
   },
 }

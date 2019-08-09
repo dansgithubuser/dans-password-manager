@@ -11,15 +11,16 @@ import random
 @csrf_exempt
 def signup(request):
     form = UserCreationForm(request.POST)
-    assert form.is_valid()
+    if not form.is_valid():
+        return JsonResponse(form.errors, status=400)
     form.save()
     username = form.cleaned_data.get('username')
     raw_password = form.cleaned_data.get('password1')
     user = authenticate(username=username, password=raw_password)
     user.userinfo = models.UserInfo.objects.create(
         user = user,
-        public_key=request.POST['public_key'],
-        private_key=request.POST['private_key'],
+        public_key=request.POST['publicKey'],
+        private_key=request.POST['privateKey'],
     )
     login(request, user)
     return HttpResponse(status=201)

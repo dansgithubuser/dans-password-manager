@@ -5,7 +5,13 @@ const api = axios.create({
 });
 
 export default {
-  signup (username, password) {
-    return api.post('/signup', {username, password1: password, password2: password});
+  signup (username, password, password_confirmation) {
+    const params = new URLSearchParams();
+    params.append('username', username);
+    params.append('password1', password);
+    params.append('password2', password_confirmation);
+    params.append('publicKey', 'pub');
+    params.append('privateKey', 'priv');
+    return api.post('signup', params);
   },
 };
