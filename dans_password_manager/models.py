@@ -3,8 +3,8 @@ from django.contrib.auth.models import User
 
 class UserInfo(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
+    salt = models.TextField()
     public_key = models.TextField()
-    private_key = models.TextField()
 
 class Team(models.Model):
     name = models.TextField()

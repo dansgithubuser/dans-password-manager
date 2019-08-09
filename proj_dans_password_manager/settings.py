@@ -128,7 +128,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'frontend', 'dist')]
 
 # from manage.py check --deploy
 SECURE_HSTS_SECONDS = 3600
@@ -140,8 +140,6 @@ CSRF_COOKIE_SECURE = True
 X_FRAME_OPTIONS = 'DENY'
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD = True
-
-LOGIN_REDIRECT_URL = '/'
 
 if os.environ.get('DJANGOGO_ENV') != 'local':
     import django_heroku

@@ -1,28 +1,42 @@
 from . import models
 
-from django.contrib.auth import login, authenticate
+from django.contrib import auth
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 
+import json
 import random
 
 @csrf_exempt
 def signup(request):
     form = UserCreationForm(request.POST)
-    assert form.is_valid()
+    if not form.is_valid():
+        return JsonResponse(form.errors, status=400)
     form.save()
     username = form.cleaned_data.get('username')
     raw_password = form.cleaned_data.get('password1')
-    user = authenticate(username=username, password=raw_password)
+    user = auth.authenticate(username=username, password=raw_password)
     user.userinfo = models.UserInfo.objects.create(
-        user = user,
-        public_key=request.POST['public_key'],
-        private_key=request.POST['private_key'],
+        user=user,
+        salt=request.POST['salt'],
+        public_key=request.POST['publicKey'],
     )
-    login(request, user)
+    auth.login(request, user)
     return HttpResponse(status=201)
+
+def login(request):
+    params = json.loads(request.body.decode())
+    user = auth.authenticate(
+        username=params['username'],
+        password=params['password'],
+    )
+    if user:
+        auth.login(request, user)
+        return JsonResponse({'salt': user.userinfo.salt}, status=200)
+    else:
+        return HttpResponse(status=400)
 
 def team(request):
     if request.method == 'POST':
