@@ -7,6 +7,9 @@
     <v-text-field v-model='loginUsername' label='username'/>
     <v-text-field v-model='loginPassword' label='password'/>
     <v-btn @click='login'>login</v-btn>
+    <template v-if='loggedIn'>
+      logged in!
+    </template>
   </v-container>
 </template>
 
@@ -21,14 +24,23 @@ export default {
     signupPasswordConfirmation: '',
     loginUsername: '',
     loginPassword: '',
+    loggedIn: false,
   }),
   methods: {
     signup () {
-      api.signup(this.signupUsername, this.signupPassword, this.signupPasswordConfirmation);
+      api.signup(this.signupUsername, this.signupPassword, this.signupPasswordConfirmation)
+        .then(this.updateLoggedIn);
     },
     login () {
-      api.login(this.loginUsername, this.loginPassword);
+      api.login(this.loginUsername, this.loginPassword)
+        .then(this.updateLoggedIn);
     },
+    updateLoggedIn () {
+      this.loggedIn = localStorage.loggedIn;
+    },
+  },
+  mounted () {
+    this.updateLoggedIn();
   },
 }
 </script>
