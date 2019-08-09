@@ -19,9 +19,9 @@ def signup(request):
     raw_password = form.cleaned_data.get('password1')
     user = auth.authenticate(username=username, password=raw_password)
     user.userinfo = models.UserInfo.objects.create(
-        user = user,
+        user=user,
+        salt=request.POST['salt'],
         public_key=request.POST['publicKey'],
-        private_key=request.POST['privateKey'],
     )
     auth.login(request, user)
     return HttpResponse(status=201)
@@ -34,7 +34,7 @@ def login(request):
     )
     if user:
         auth.login(request, user)
-        return HttpResponse(status=200)
+        return JsonResponse({'salt': user.userinfo.salt}, status=200)
     else:
         return HttpResponse(status=400)
 

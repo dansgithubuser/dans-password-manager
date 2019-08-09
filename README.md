@@ -51,9 +51,8 @@ server
 		encrypt(item, team_secret)
 
 when user signs up:
-	user creates key pair and team_secret
-	user encrypts private_key and team_secret with password
-	user sends public_key, encrypted private_key, and encrypted team_secret to server
+	user creates key pair from password
+	user sends public_key to server
 
 when user logs in:
 	user receives encrypted private_key and public_key

@@ -36,7 +36,7 @@ export default {
         .then(this.updateLoggedIn);
     },
     updateLoggedIn () {
-      this.loggedIn = localStorage.loggedIn;
+      this.loggedIn = localStorage.privateKey ? true : false;
     },
   },
   mounted () {
