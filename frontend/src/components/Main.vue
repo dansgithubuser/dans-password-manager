@@ -7,9 +7,11 @@
     <v-text-field v-model='loginUsername' label='username'/>
     <v-text-field v-model='loginPassword' label='password'/>
     <v-btn @click='login'>login</v-btn>
-    <template v-if='loggedIn'>
-      logged in!
+    <template v-if='username'>
+      logged in as {{username}}
     </template>
+    <v-text-field v-model='teamCreateName' label='team name'/>
+    <v-btn @click='teamCreate'>create team</v-btn>
   </v-container>
 </template>
 
@@ -24,23 +26,27 @@ export default {
     signupPasswordConfirmation: '',
     loginUsername: '',
     loginPassword: '',
-    loggedIn: false,
+    username: null,
+    teamCreateName: '',
   }),
   methods: {
-    signup () {
+    signup() {
       api.signup(this.signupUsername, this.signupPassword, this.signupPasswordConfirmation)
-        .then(this.updateLoggedIn);
+        .then(this.updateUsername);
     },
-    login () {
+    login() {
       api.login(this.loginUsername, this.loginPassword)
-        .then(this.updateLoggedIn);
+        .then(this.updateUsername);
     },
-    updateLoggedIn () {
-      this.loggedIn = localStorage.privateKey ? true : false;
+    updateUsername() {
+      this.username = localStorage.username;
+    },
+    teamCreate() {
+      api.teamCreate(this.teamCreateName);
     },
   },
-  mounted () {
-    this.updateLoggedIn();
+  mounted() {
+    this.updateUsername();
   },
 }
 </script>

@@ -40,11 +40,12 @@ def login(request):
 
 def team(request):
     if request.method == 'POST':
-        team = models.Team.objects.create(name=request.POST['name'])
+        params = json.loads(request.body.decode())
+        team = models.Team.objects.create(name=params['name'])
         models.Membership.objects.create(
             user=request.user,
             team=team,
-            team_secret=request.POST['teamSecret'],
+            team_secret=params['teamSecret'],
             admin=True,
         )
         return HttpResponse(status=201)
