@@ -35,6 +35,10 @@
     <v-text-field v-model='verifyUsername' label='username'/>
     <v-text-field v-model='verifyTeam' label='team'/>
     <v-btn @click='verify'>verify</v-btn>
+    <v-text-field v-model='inviteUsername' label='username'/>
+    <v-text-field v-model='inviteTeam' label='team'/>
+    <v-text-field v-model='inviteVerificationValue' label='verification value'/>
+    <v-btn @click='invite'>invite</v-btn>
   </v-container>
 </template>
 
@@ -60,6 +64,9 @@ export default {
     teamToItems: {},
     verifyUsername: '',
     verifyTeam: '',
+    inviteUsername: '',
+    inviteTeam: '',
+    inviteVerificationValue: '',
   }),
   methods: {
     signup() {
@@ -87,10 +94,13 @@ export default {
         .then(() => this.updateItems(this.itemCreateTeam));
     },
     async updateItems(team) {
-      this.teamToItems[team] = await api.itemList(team);
+      this.$set(this.teamToItems, team, await api.itemList(team));
     },
     verify() {
       api.verify(this.verifyUsername, this.verifyTeam);
+    },
+    invite() {
+      api.invite(this.inviteUsername, this.inviteTeam, this.inviteVerificationValue);
     },
   },
   mounted() {

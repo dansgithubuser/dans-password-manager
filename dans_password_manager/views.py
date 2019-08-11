@@ -105,7 +105,7 @@ def verify(request):
         return HttpResponse(status=404)
     if not membership[0].admin:
         return HttpResponse(status=403)
-    invitee = User.objects.filter(username=params['username']).get()
+    invitee = User.objects.get(username=params['username'])
     value = random.randint(100000, 999999)
     models.Verification.objects.create(
         value=value,
@@ -115,24 +115,26 @@ def verify(request):
     return JsonResponse(value, status=201, safe=False)
 
 def public_key(request):
-    info = models.UserInfo.objects.get(user_id=request.GET['user'])
+    user = User.objects.get(username=request.GET['username'])
+    info = models.UserInfo.objects.get(user=user)
     return JsonResponse(info.public_key, safe=False)
 
 def invite(request):
-    membership = models.Membership.objects.filter(user=request.user, team_id=request.POST['team'])
+    params = json.loads(request.body.decode())
+    membership = models.Membership.objects.filter(user=request.user, team_id=params['team'])
     if membership.count() != 1:
         return HttpResponse(status=404)
     if not membership[0].admin:
         return HttpResponse(status=403)
-    verifications = models.Verification.objects.filter(user_id=request.POST['user'], team_id=request.POST['team'])
-    if request.POST['verificationValue'] not in [i.value for i in verifications]:
+    invitee = User.objects.get(username=params['username'])
+    verifications = models.Verification.objects.filter(user=invitee, team_id=params['team'])
+    if params['verificationValue'] not in [i.value for i in verifications]:
         return HttpResponse('verification failure', status=409)
     verifications.delete()
-    invitee = User.objects.get(id=request.POST['user'])
     models.Membership.objects.create(
         user=invitee,
-        team_id=request.POST['team'],
-        team_secret=request.POST['teamSecret'],
+        team_id=params['team'],
+        team_secret=params['teamSecret'],
     )
     return HttpResponse(status=201)
 

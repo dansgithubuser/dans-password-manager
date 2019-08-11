@@ -85,4 +85,10 @@ export default {
   async verify(username, team) {
     return (await api.post('verify', { username, team })).data;
   },
+  async invite(username, team, verificationValue) {
+    const inviteePublicKey = (await api.get('public_key', { params: { username } })).data;
+    var teamSecret = parseKeyPair(JSON.parse(window.localStorage.teamSecrets)[team]).privateKey;
+    teamSecret = cryptico.encrypt(teamSecret, inviteePublicKey);
+    api.post('invite', {username, team, verificationValue, teamSecret});
+  },
 };
