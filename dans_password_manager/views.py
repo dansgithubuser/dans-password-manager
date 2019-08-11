@@ -99,16 +99,18 @@ def item(request):
         ], safe=False)
 
 def verify(request):
-    membership = models.Membership.objects.filter(user=request.user, team_id=request.POST['team'])
+    params = json.loads(request.body.decode())
+    membership = models.Membership.objects.filter(user=request.user, team_id=params['team'])
     if membership.count() != 1:
         return HttpResponse(status=404)
     if not membership[0].admin:
         return HttpResponse(status=403)
+    invitee = User.objects.filter(username=params['username']).get()
     value = random.randint(100000, 999999)
     models.Verification.objects.create(
         value=value,
-        user_id=request.POST['user'],
-        team_id=request.POST['team'],
+        user=invitee,
+        team_id=params['team'],
     )
     return JsonResponse(value, status=201, safe=False)
 

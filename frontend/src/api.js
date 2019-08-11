@@ -82,4 +82,7 @@ export default {
     }
     return items;
   },
+  async verify(username, team) {
+    return (await api.post('verify', { username, team })).data;
+  },
 };

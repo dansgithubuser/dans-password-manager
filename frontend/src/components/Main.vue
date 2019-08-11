@@ -32,6 +32,9 @@
         </v-list>
       </v-list-item>
     </v-list>
+    <v-text-field v-model='verifyUsername' label='username'/>
+    <v-text-field v-model='verifyTeam' label='team'/>
+    <v-btn @click='verify'>verify</v-btn>
   </v-container>
 </template>
 
@@ -55,6 +58,8 @@ export default {
     itemCreateNotes: '',
     itemCreateTeam: '',
     teamToItems: {},
+    verifyUsername: '',
+    verifyTeam: '',
   }),
   methods: {
     signup() {
@@ -83,6 +88,9 @@ export default {
     },
     async updateItems(team) {
       this.teamToItems[team] = await api.itemList(team);
+    },
+    verify() {
+      api.verify(this.verifyUsername, this.verifyTeam);
     },
   },
   mounted() {
