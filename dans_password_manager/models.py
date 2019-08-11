@@ -18,7 +18,10 @@ class Membership(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
 class Item(models.Model):
+    name = models.TextField()
+    target = models.TextField()
     value = models.TextField()
+    notes = models.TextField()
     team = models.ForeignKey(Team, on_delete=models.CASCADE)
     updated_at = models.DateTimeField(auto_now=True)
 

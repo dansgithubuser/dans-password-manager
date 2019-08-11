@@ -10,8 +10,28 @@
     <template v-if='username'>
       logged in as {{username}}
     </template>
-    <v-text-field v-model='teamCreateName' label='team name'/>
+    <v-text-field v-model='teamCreateName' label='name'/>
     <v-btn @click='teamCreate'>create team</v-btn>
+    <v-list>
+      <v-list-item v-for='{ id, name } of teams' :key='id'>
+        {{ id }}: {{ name }}
+      </v-list-item>
+    </v-list>
+    <v-text-field v-model='itemCreateName' label='name'/>
+    <v-text-field v-model='itemCreateTarget' label='target'/>
+    <v-text-field v-model='itemCreateValue' label='value'/>
+    <v-text-field v-model='itemCreateNotes' label='notes'/>
+    <v-text-field v-model='itemCreateTeam' label='team'/>
+    <v-btn @click='itemCreate'>create item</v-btn>
+    <v-list>
+      <v-list-item v-for='(items, team) in teamToItems' :key='team'>
+        <v-list>
+          <v-list-item v-for='({ name, target, value, notes }, i) of items' :key='i'>
+            {{ name }}: {{ target }}, {{ value }}, {{ notes }}
+          </v-list-item>
+        </v-list>
+      </v-list-item>
+    </v-list>
   </v-container>
 </template>
 
@@ -28,6 +48,13 @@ export default {
     loginPassword: '',
     username: null,
     teamCreateName: '',
+    teams: [],
+    itemCreateName: '',
+    itemCreateTarget: '',
+    itemCreateValue: '',
+    itemCreateNotes: '',
+    itemCreateTeam: '',
+    teamToItems: {},
   }),
   methods: {
     signup() {
@@ -42,11 +69,25 @@ export default {
       this.username = localStorage.username;
     },
     teamCreate() {
-      api.teamCreate(this.teamCreateName);
+      api.teamCreate(this.teamCreateName)
+        .then(this.updateTeams);
+    },
+    async updateTeams() {
+      this.teams = await api.teamList();
+      this.teamToItems = {};
+      for (const team of this.teams) this.updateItems(team.id);
+    },
+    itemCreate() {
+      api.itemCreate(this.itemCreateName, this.itemCreateTarget, this.itemCreateValue, this.itemCreateNotes, this.itemCreateTeam)
+        .then(() => this.updateItems(this.itemCreateTeam));
+    },
+    async updateItems(team) {
+      this.teamToItems[team] = await api.itemList(team);
     },
   },
   mounted() {
     this.updateUsername();
+    this.updateTeams();
   },
 }
 </script>

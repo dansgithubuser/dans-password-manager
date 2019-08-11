@@ -50,16 +50,24 @@ def team(request):
         )
         return HttpResponse(status=201)
     else:
-        return JsonResponse([i for i in request.user.team_set.values()], safe=False)
+        return JsonResponse([
+            {
+                'id': i.team.id,
+                'name': i.team.name,
+                'secret': i.team_secret,
+                'admin': i.admin,
+            }
+            for i in request.user.membership_set.select_related('team')
+        ], safe=False)
 
 def item(request):
     if request.method == 'POST':
-        params = request.POST
+        params = json.loads(request.body.decode())
     else:
         params = request.GET
     # check user is a member of team
     if 'id' in params:
-        items = models.Item.objects.filter(id=request.POST['id'])
+        items = models.Item.objects.filter(id=params['id'])
         if not items: return HttpResponse(status=404)
         team_id = items[0].team_id
     else:
@@ -68,11 +76,22 @@ def item(request):
         return HttpResponse(status=404)
     # action
     if request.method == 'POST':
-        if 'id' in request.POST:
-            models.Item.objects.filter(id=request.POST['id']).update(value=request.POST['value'])
+        if 'id' in params:
+            models.Item.objects.filter(id=params['id']).update(
+                name=params['name'],
+                target=params['target'],
+                value=params['value'],
+                notes=params['notes'],
+            )
             return HttpResponse(status=204)
         else:
-            item = models.Item.objects.create(value=request.POST['value'], team_id=team_id)
+            item = models.Item.objects.create(
+                name=params['name'],
+                target=params['target'],
+                value=params['value'],
+                notes=params['notes'],
+                team_id=team_id,
+            )
             return JsonResponse(item.id, status=201, safe=False)
     else:
         return JsonResponse([i for i in

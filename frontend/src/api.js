@@ -14,8 +14,8 @@ function storeUserInfo(username, privateKey) {
   window.localStorage.privateKey = JSON.stringify(privateKey.toJSON());
 }
 
-function getKeyPair() {
-  const privateKey = cryptico.RSAKey.parse(window.localStorage.privateKey);
+function parseKeyPair(serialized) {
+  const privateKey = cryptico.RSAKey.parse(serialized);
   const publicKey = cryptico.publicKeyString(privateKey);
   return { publicKey, privateKey };
 }
@@ -47,7 +47,39 @@ export default {
   teamCreate(name) {
     const salt = bcrypt.genSaltSync(10);
     var teamSecret = bcrypt.hashSync(window.localStorage.privateKey, salt);
-    teamSecret = cryptico.encrypt(teamSecret, getKeyPair().publicKey);
+    teamSecret = JSON.stringify(cryptico.generateRSAKey(teamSecret, 2048).toJSON());
+    teamSecret = cryptico.encrypt(
+      teamSecret,
+      parseKeyPair(window.localStorage.privateKey).publicKey,
+    ).cipher;
     return api.post('team', { name, teamSecret });
+  },
+  async teamList() {
+    const privateKey = parseKeyPair(window.localStorage.privateKey).privateKey;
+    const teams = (await api.get('team')).data;
+    window.localStorage.teamSecrets = JSON.stringify(teams.reduce(
+      (teamSecrets, team) => {
+        teamSecrets[team.id] = cryptico.decrypt(team.secret, privateKey).plaintext;
+        return teamSecrets;
+      },
+      {},
+    ));
+    for (const team of teams) delete team.secret;
+    return teams;
+  },
+  itemCreate(name, target, value, notes, team) {
+    const publicKey = parseKeyPair(JSON.parse(window.localStorage.teamSecrets)[team]).publicKey;
+    value = cryptico.encrypt(value, publicKey).cipher;
+    notes = cryptico.encrypt(notes, publicKey).cipher;
+    return api.post('item', { name, target, value, notes, team });
+  },
+  async itemList(team) {
+    const privateKey = parseKeyPair(JSON.parse(window.localStorage.teamSecrets)[team]).privateKey;
+    const items = (await api.get('item', { params: { team } })).data;
+    for (const i of items) {
+      i.value = cryptico.decrypt(i.value, privateKey).plaintext;
+      i.notes = cryptico.decrypt(i.notes, privateKey).plaintext;
+    }
+    return items;
   },
 };
