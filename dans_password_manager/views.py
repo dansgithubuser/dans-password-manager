@@ -22,6 +22,7 @@ def signup(request):
         user=user,
         salt=request.POST['salt'],
         public_key=request.POST['publicKey'],
+        private_key=request.POST['privateKey'],
     )
     auth.login(request, user)
     return HttpResponse(status=201)
@@ -34,7 +35,11 @@ def login(request):
     )
     if user:
         auth.login(request, user)
-        return JsonResponse({'salt': user.userinfo.salt}, status=200)
+        return JsonResponse({
+            'salt': json.loads(user.userinfo.salt),
+            'publicKey': user.userinfo.public_key,
+            'privateKey': json.loads(user.userinfo.private_key),
+        }, status=200)
     else:
         return HttpResponse(status=400)
 
@@ -50,15 +55,15 @@ def team(request):
         )
         return HttpResponse(status=201)
     else:
-        return JsonResponse([
+        return JsonResponse({'teams': [
             {
                 'id': i.team.id,
                 'name': i.team.name,
-                'secret': i.team_secret,
+                'secret': json.loads(i.team_secret),
                 'admin': i.admin,
             }
             for i in request.user.membership_set.select_related('team')
-        ], safe=False)
+        ]})
 
 def item(request):
     if request.method == 'POST':
@@ -92,11 +97,11 @@ def item(request):
                 notes=params['notes'],
                 team_id=team_id,
             )
-            return JsonResponse(item.id, status=201, safe=False)
+            return JsonResponse({'item': item.id}, status=201)
     else:
-        return JsonResponse([i for i in
+        return JsonResponse({'items': [i for i in
             models.Item.objects.filter(team_id=team_id).values()
-        ], safe=False)
+        ]})
 
 def verify(request):
     params = json.loads(request.body.decode())
@@ -112,12 +117,12 @@ def verify(request):
         user=invitee,
         team_id=params['team'],
     )
-    return JsonResponse(value, status=201, safe=False)
+    return JsonResponse({'value': value}, status=201)
 
 def public_key(request):
     user = User.objects.get(username=request.GET['username'])
     info = models.UserInfo.objects.get(user=user)
-    return JsonResponse(info.public_key, safe=False)
+    return JsonResponse({'publicKey': info.public_key})
 
 def invite(request):
     params = json.loads(request.body.decode())

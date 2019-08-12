@@ -79,6 +79,7 @@ export default {
     },
     updateUsername() {
       this.username = localStorage.username;
+      this.updateTeams();
     },
     teamCreate() {
       api.teamCreate(this.teamCreateName)
