@@ -3,6 +3,7 @@ from . import models
 from django.contrib import auth
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
+from django.db import transaction
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 
@@ -60,6 +61,7 @@ def team(request):
                 'id': i.team.id,
                 'name': i.team.name,
                 'secret': json.loads(i.team_secret),
+                'secretUpdatedAt': i.updated_at.timestamp(),
                 'admin': i.admin,
             }
             for i in request.user.membership_set.select_related('team')
@@ -69,7 +71,10 @@ def item(request):
     if request.method == 'POST':
         params = json.loads(request.body.decode())
     else:
-        params = request.GET
+        params = {
+            k: (v if k != 'teamSecretUpdatedAt' else float(v))
+            for k, v in request.GET.items()
+        }
     # check user is a member of team
     if 'id' in params:
         items = models.Item.objects.filter(id=params['id'])
@@ -77,30 +82,36 @@ def item(request):
         team_id = items[0].team_id
     else:
         team_id = params['team']
-    if models.Membership.objects.filter(user=request.user, team_id=team_id).count() != 1:
-        return HttpResponse(status=404)
+    membership = models.Membership.objects.filter(user=request.user, team_id=team_id)
+    if not membership: return HttpResponse(status=404)
+    # check if user's team secret is up-to-date
+    if 'teamSecretUpdatedAt' in params:
+        if params['teamSecretUpdatedAt'] < membership[0].updated_at.timestamp():
+            return HttpResponse(status=409)
     # action
     if request.method == 'POST':
         if 'id' in params:
             models.Item.objects.filter(id=params['id']).update(
-                name=params['name'],
-                target=params['target'],
-                value=params['value'],
-                notes=params['notes'],
+                **{i: params[i] for i in ['name', 'target', 'value', 'notes'] if i in params}
             )
             return HttpResponse(status=204)
         else:
             item = models.Item.objects.create(
-                name=params['name'],
-                target=params['target'],
-                value=params['value'],
-                notes=params['notes'],
+                **{i: params[i] for i in ['name', 'target', 'value', 'notes']},
                 team_id=team_id,
             )
             return JsonResponse({'item': item.id}, status=201)
     else:
-        return JsonResponse({'items': [i for i in
-            models.Item.objects.filter(team_id=team_id).values()
+        return JsonResponse({'items': [
+            {
+                'id': i.id,
+                'name': i.name,
+                'target': i.target,
+                'value': i.value,
+                'notes': i.notes,
+                'team': i.team_id,
+            }
+            for i in models.Item.objects.filter(team_id=team_id)
         ]})
 
 def verify(request):
@@ -111,7 +122,7 @@ def verify(request):
     if not membership[0].admin:
         return HttpResponse(status=403)
     invitee = User.objects.get(username=params['username'])
-    value = random.randint(100000, 999999)
+    value = str(random.randint(100000, 999999))
     models.Verification.objects.create(
         value=value,
         user=invitee,
@@ -120,9 +131,24 @@ def verify(request):
     return JsonResponse({'value': value}, status=201)
 
 def public_key(request):
-    user = User.objects.get(username=request.GET['username'])
-    info = models.UserInfo.objects.get(user=user)
-    return JsonResponse({'publicKey': info.public_key})
+    if 'username' in request.GET:
+        user = User.objects.get(username=request.GET['username'])
+        info = models.UserInfo.objects.get(user=user)
+        return JsonResponse({'publicKey': info.public_key})
+    membership = models.Membership.objects.filter(user=request.user, team_id=request.GET['team'])
+    if membership.count() != 1:
+        return HttpResponse(status=404)
+    if not membership[0].admin:
+        return HttpResponse(status=403)
+    team = models.Team.objects.get(id=request.GET['team'])
+    teammates = team.users.select_related('userinfo').all()
+    return JsonResponse({'publicKeys': [
+        {
+            'userId': i.id,
+            'publicKey': i.userinfo.public_key,
+        }
+        for i in teammates
+    ]})
 
 def invite(request):
     params = json.loads(request.body.decode())
@@ -144,25 +170,36 @@ def invite(request):
     return HttpResponse(status=201)
 
 def revoke(request):
-    membership = models.Membership.objects.filter(user=request.user, team_id=request.POST['team'])
+    params = json.loads(request.body.decode())
+    membership = models.Membership.objects.filter(user=request.user, team_id=params['team'])
     if membership.count() != 1:
         return HttpResponse(status=404)
     if not membership[0].admin:
         return HttpResponse(status=403)
+    revokee = User.objects.get(username=params['username'])
     models.Membership.objects.filter(
-        user_id=request.POST['user'],
-        team_id=request.POST['team'],
+        user=revokee,
+        team_id=params['team'],
     ).delete()
     return HttpResponse(status=204)
 
 def rotate(request):
-    membership = models.Membership.objects.filter(user=request.user, team_id=request.POST['team'])
+    params = json.loads(request.body.decode())
+    membership = models.Membership.objects.filter(user=request.user, team_id=params['team'])
     if membership.count() != 1:
         return HttpResponse(status=404)
     if not membership[0].admin:
         return HttpResponse(status=403)
-    models.Membership.objects.filter(
-        user_id=request.POST['user'],
-        team_id=request.POST['team'],
-    ).update(team_secret=request.POST['teamSecret'])
+    team = models.Team.objects.get(id=params['team'])
+    with transaction.atomic():
+        for user in team.users.all():
+            models.Membership.objects.filter(user=user, team=team).update(
+                team_secret=params['teamSecrets'][str(user.id)]
+            )
+        for item in team.item_set.all():
+            item_params = params['items'][str(item.id)]
+            models.Item.objects.filter(id=item.id).update(
+                value=item_params['value'],
+                notes=item_params['notes'],
+            )
     return HttpResponse(status=204)

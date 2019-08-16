@@ -18,16 +18,7 @@ A free, open-source, easy-to-deploy, web-based password manager for teams.
 - Clipperz -- "The open source version of Clipperz is suitable for testing and educational purposes only."
 
 ## todo
-- implement frontend crypto
-	- create team
-	- add/update item
-	- view item
-	- invite
-	- rotate
-- swap cryptico and bcrypt for webcrypto api
-	- cryptico rsa key gen is not deterministic, webcrypto has symmetric encrypt => make team secret a random symmetric key
-	- pbkdf2 replaces bcrypt
-- pretty frontend
+- pretty frontend + testing
 	- signup
 	- log in
 	- teams

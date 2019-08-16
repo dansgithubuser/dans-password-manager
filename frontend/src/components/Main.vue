@@ -39,6 +39,9 @@
     <v-text-field v-model='inviteTeam' label='team'/>
     <v-text-field v-model='inviteVerificationValue' label='verification value'/>
     <v-btn @click='invite'>invite</v-btn>
+    <v-text-field v-model='revokeUsername' label='username'/>
+    <v-text-field v-model='revokeTeam' label='team'/>
+    <v-btn @click='revoke'>revoke</v-btn>
   </v-container>
 </template>
 
@@ -67,6 +70,8 @@ export default {
     inviteUsername: '',
     inviteTeam: '',
     inviteVerificationValue: '',
+    revokeUsername: '',
+    revokeTeam: '',
   }),
   methods: {
     signup() {
@@ -102,6 +107,10 @@ export default {
     },
     invite() {
       api.invite(this.inviteUsername, this.inviteTeam, this.inviteVerificationValue);
+    },
+    async revoke() {
+      await api.revoke(this.revokeUsername, this.revokeTeam);
+      await this.updateTeams();
     },
   },
   mounted() {

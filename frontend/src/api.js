@@ -33,6 +33,15 @@ function genIv() {
   return genRandom(12);
 }
 
+// return: key object
+function genTeamSecret() {
+  return subtle.generateKey(
+    { name: 'AES-GCM', length: 256 },
+    true,
+    teamSecretOps,
+  );
+}
+
 // key: key object
 // symmetricKey: key object
 // return: object
@@ -231,39 +240,44 @@ export default {
     return response;
   },
   async teamCreate(name) {
-    var teamSecret = await subtle.generateKey(
-      { name: 'AES-GCM', length: 256 },
-      true,
-      teamSecretOps,
-    );
+    var teamSecret = await genTeamSecret();
     const publicKey = await getUserPublicKey();
-    teamSecret = JSON.stringify(await wrapTeamSecret(teamSecret, publicKey));
+    teamSecret = await wrapTeamSecret(teamSecret, publicKey);
     api.post('team', { name, teamSecret });
   },
   async teamList() {
     const privateKey = await getUserPrivateKey();
     const teams = (await api.get('team')).data.teams;
-    window.localStorage.teamSecrets = JSON.stringify(await teams.reduce(
-      async (teamSecrets, team) => {
-        teamSecrets[team.id] = await subtle.exportKey(
-          'jwk',
-          await unwrapTeamSecret(team.secret, privateKey)
-        );
-        return teamSecrets;
+    window.localStorage.teamSecretsUpdatedAt = JSON.stringify(teams.reduce(
+      (teamSecretsUpdatedAt, team) => {
+        teamSecretsUpdatedAt[team.id] = team.secretUpdatedAt;
+        return teamSecretsUpdatedAt;
       },
       {},
     ));
+    const teamSecrets = {};
+    for (const team of teams) {
+      teamSecrets[team.id] = await subtle.exportKey(
+        'jwk',
+        await unwrapTeamSecret(team.secret, privateKey)
+      );
+    }
+    window.localStorage.teamSecrets = JSON.stringify(teamSecrets);
     return teams;
   },
   async itemCreate(name, target, value, notes, team) {
     const teamSecret = await getTeamSecret(team);
     value = await encrypt(value, teamSecret);
     notes = await encrypt(notes, teamSecret);
-    api.post('item', { name, target, value, notes, team });
+    api.post('item', {
+      name, target, value, notes, team,
+      teamSecretUpdatedAt: JSON.parse(window.localStorage.teamSecretsUpdatedAt)[team],
+    });
   },
   async itemList(team) {
+    const teamSecretUpdatedAt = JSON.parse(window.localStorage.teamSecretsUpdatedAt)[team];
+    const items = (await api.get('item', { params: { team, teamSecretUpdatedAt } })).data.items;
     const teamSecret = await getTeamSecret(team);
-    const items = (await api.get('item', { params: { team } })).data.items;
     for (const i of items) {
       i.value = await decrypt(i.value, teamSecret);
       i.notes = await decrypt(i.notes, teamSecret);
@@ -284,5 +298,31 @@ export default {
     var teamSecret = await getTeamSecret(team);
     teamSecret = await wrapTeamSecret(teamSecret, inviteePublicKey);
     return api.post('invite', { username, team, verificationValue, teamSecret });
+  },
+  async revoke(username, team) {
+    await api.post('revoke', { username, team });
+    const oldTeamSecret = await getTeamSecret(team);
+    const newTeamSecret = await genTeamSecret();
+    // team items
+    const oldItems = (await api.get('item', { params: { team } })).data.items;
+    const items = {};
+    for (const item of oldItems) {
+      items[item.id] = {
+        value: await encrypt(await decrypt(item.value, oldTeamSecret), newTeamSecret),
+        notes: await encrypt(await decrypt(item.notes, oldTeamSecret), newTeamSecret),
+      };
+    }
+    // teammates' team secrets
+    const publicKeys = (await api.get('public_key', { params: { team } })).data.publicKeys;
+    const teamSecrets = {};
+    for (const publicKey of publicKeys) {
+      teamSecrets[publicKey.userId] = await wrapTeamSecret(newTeamSecret, await importKey(
+        JSON.parse(publicKey.publicKey),
+        publicOps,
+        pairAlg,
+      ));
+    }
+    // post
+    await api.post('rotate', { team, items, teamSecrets });
   },
 };
