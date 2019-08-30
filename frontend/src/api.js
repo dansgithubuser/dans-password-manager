@@ -243,7 +243,7 @@ export default {
     var teamSecret = await genTeamSecret();
     const publicKey = await getUserPublicKey();
     teamSecret = await wrapTeamSecret(teamSecret, publicKey);
-    api.post('team', { name, teamSecret });
+    await api.post('team', { name, teamSecret });
   },
   async teamList() {
     const privateKey = await getUserPrivateKey();
@@ -269,8 +269,17 @@ export default {
     const teamSecret = await getTeamSecret(team);
     value = await encrypt(value, teamSecret);
     notes = await encrypt(notes, teamSecret);
-    api.post('item', {
+    await api.post('item', {
       name, target, value, notes, team,
+      teamSecretUpdatedAt: JSON.parse(window.localStorage.teamSecretsUpdatedAt)[team],
+    });
+  },
+  async itemUpdate(id, name, target, value, notes, team) {
+    const teamSecret = await getTeamSecret(team);
+    value = await encrypt(value, teamSecret);
+    notes = await encrypt(notes, teamSecret);
+    await api.post('item', {
+      id, name, target, value, notes,
       teamSecretUpdatedAt: JSON.parse(window.localStorage.teamSecretsUpdatedAt)[team],
     });
   },
@@ -286,6 +295,9 @@ export default {
   },
   async verify(username, team) {
     return (await api.post('verify', { username, team })).data.value;
+  },
+  async verificationValues() {
+    return (await api.get('verification_values')).data.values;
   },
   async invite(username, team, verificationValue) {
     const resp = await api.get('public_key', { params: { username } });

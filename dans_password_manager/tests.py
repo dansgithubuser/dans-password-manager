@@ -133,7 +133,7 @@ class SmokeTestCase(TestCase):
         # verify
         response = client.post('/api/verify', {'username': invitee.username, 'team': team.id})
         self.assertEqual(response.status_code, 201)
-        verification_value = response.json()['value']
+        verification_value = invitee_client.get('/api/verification_values').json()['values'][0]
         # adversary cannot verify
         response = adversary.post('/api/verify', {'username': invitee.username, 'team': team.id})
         self.assertEqual(response.status_code, 404)

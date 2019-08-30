@@ -128,7 +128,13 @@ def verify(request):
         user=invitee,
         team_id=params['team'],
     )
-    return JsonResponse({'value': value}, status=201)
+    return HttpResponse(status=201)
+
+def verification_values(request):
+    return JsonResponse(
+        {'values': [i.value for i in models.Verification.objects.filter(user=request.user)]},
+        status=200,
+    )
 
 def public_key(request):
     if 'username' in request.GET:
