@@ -1,5 +1,6 @@
 <template>
   <v-container>
+    <v-btn v-if='is_dev' @click='test' style='position:fixed; right:0'>test</v-btn>
     <v-text-field v-model='signupUsername' label='username'/>
     <v-text-field v-model='signupPassword' label='password'/>
     <v-text-field v-model='signupPasswordConfirmation' label='confirm password'/>
@@ -47,6 +48,7 @@
 
 <script>
 import api from '../api.js'
+import uuidv4 from 'uuid/v4'
 
 export default {
   name: 'Main',
@@ -111,6 +113,47 @@ export default {
     async revoke() {
       await api.revoke(this.revokeUsername, this.revokeTeam);
       await this.updateTeams();
+    },
+    is_dev() {
+      return process.env.NODE_ENV == 'development';
+    },
+    async test() {
+      const password = 'jjo8OSD8882m3osidmcsuoOSID823mIOSDmoim';
+      // single-user stuff
+      const user1 = uuidv4();
+      console.log('user1:', user1); // eslint-disable-line no-console
+      await api.signup(user1, password, password);
+      await api.teamCreate('test-team-name');
+      var teams = await api.teamList();
+      const team = teams[0].id;
+      await api.itemCreate('test-item-name', 'test-item-target', 'test-item-value', 'test-item-notes', team);
+      var items = await api.itemList(team);
+      if (items[0].value != 'test-item-value') console.error('wrong value for user1!'); // eslint-disable-line no-console
+      // invite
+      const user2 = uuidv4();
+      console.log('user2:', user2); // eslint-disable-line no-console
+      await api.signup(user2, password, password);
+      await api.login(user1, password);
+      await api.verify(user2, team);
+      await api.login(user2, password);
+      const verificationValues = await api.verificationValues();
+      await api.login(user1, password);
+      await api.invite(user2, team, verificationValues[0]);
+      await api.login(user2, password);
+      await api.teamList();
+      items = await api.itemList(team);
+      if (items[0].value != 'test-item-value') console.error('wrong value for user2!'); // eslint-disable-line no-console
+      // revoke
+      await api.login(user1, password);
+      await api.revoke(user2, team);
+      await api.teamList();
+      items = await api.itemList(team);
+      if (items[0].value != 'test-item-value') console.error('wrong value for user1 after revoking user2!'); // eslint-disable-line no-console
+      await api.login(user2, password);
+      teams = await api.teamList();
+      if (teams.length != 0) console.error('user2 was not revoked from team!'); // eslint-disable-line no-console
+      //
+      console.log('done!'); // eslint-disable-line no-console
     },
   },
   mounted() {
