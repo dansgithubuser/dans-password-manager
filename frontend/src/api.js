@@ -274,6 +274,15 @@ export default {
       teamSecretUpdatedAt: JSON.parse(window.localStorage.teamSecretsUpdatedAt)[team],
     });
   },
+  async itemUpdate(id, name, target, value, notes, team) {
+    const teamSecret = await getTeamSecret(team);
+    value = await encrypt(value, teamSecret);
+    notes = await encrypt(notes, teamSecret);
+    await api.post('item', {
+      id, name, target, value, notes,
+      teamSecretUpdatedAt: JSON.parse(window.localStorage.teamSecretsUpdatedAt)[team],
+    });
+  },
   async itemList(team) {
     const teamSecretUpdatedAt = JSON.parse(window.localStorage.teamSecretsUpdatedAt)[team];
     const items = (await api.get('item', { params: { team, teamSecretUpdatedAt } })).data.items;
