@@ -14,6 +14,7 @@
   <v-container>
     <v-btn v-if='isDev()' @click='test' style='position:fixed; right:0; z-index:100'>test</v-btn>
     <v-expansion-panels>
+      <!-- signup -->
       <v-expansion-panel>
         <v-expansion-panel-header>signup</v-expansion-panel-header>
         <v-expansion-panel-content>
@@ -23,6 +24,7 @@
           <v-btn @click='signup'>signup</v-btn>
         </v-expansion-panel-content>
       </v-expansion-panel>
+      <!-- login -->
       <v-expansion-panel>
         <v-expansion-panel-header>login</v-expansion-panel-header>
         <v-expansion-panel-content>
@@ -34,6 +36,7 @@
           </template>
         </v-expansion-panel-content>
       </v-expansion-panel>
+      <!-- create team -->
       <v-expansion-panel>
         <v-expansion-panel-header>create team</v-expansion-panel-header>
         <v-expansion-panel-content>
@@ -41,6 +44,7 @@
           <v-btn @click='teamCreate'>create team</v-btn>
         </v-expansion-panel-content>
       </v-expansion-panel>
+      <!-- items -->
       <v-expansion-panel>
         <v-expansion-panel-header>items</v-expansion-panel-header>
         <v-expansion-panel-content>
@@ -73,14 +77,21 @@
           </v-expansion-panels>
         </v-expansion-panel-content>
       </v-expansion-panel>
+      <!-- verify -->
       <v-expansion-panel>
         <v-expansion-panel-header>verify</v-expansion-panel-header>
         <v-expansion-panel-content>
           <v-text-field v-model='verifyUsername' label='username'/>
           <v-text-field v-model='verifyTeam' label='team'/>
           <v-btn @click='verify'>verify</v-btn>
+          <v-list>
+            <v-list-item v-for='(value, i) in verificationValues' :key='i'>
+              <v-text-field v-model='verificationValues[i]' label='value' readonly=true />
+            </v-list-item>
+          </v-list>
         </v-expansion-panel-content>
       </v-expansion-panel>
+      <!-- invite -->
       <v-expansion-panel>
         <v-expansion-panel-header>invite</v-expansion-panel-header>
         <v-expansion-panel-content>
@@ -90,6 +101,7 @@
           <v-btn @click='invite'>invite</v-btn>
         </v-expansion-panel-content>
       </v-expansion-panel>
+      <!-- revoke -->
       <v-expansion-panel>
         <v-expansion-panel-header>revoke</v-expansion-panel-header>
         <v-expansion-panel-content>
@@ -124,6 +136,7 @@ export default {
     teamToItems: {},
     verifyUsername: '',
     verifyTeam: '',
+    verificationValues: [],
     inviteUsername: '',
     inviteTeam: '',
     inviteVerificationValue: '',
@@ -141,7 +154,10 @@ export default {
     },
     updateUsername() {
       this.username = localStorage.username;
-      if (this.username) this.updateTeams();
+      if (this.username) {
+        this.updateTeams();
+        this.updateVerificationValues();
+      }
     },
     teamCreate() {
       api.teamCreate(this.teamCreateName)
@@ -169,6 +185,9 @@ export default {
     },
     verify() {
       api.verify(this.verifyUsername, this.verifyTeam);
+    },
+    async updateVerificationValues() {
+      this.verificationValues = await api.verificationValues();
     },
     invite() {
       api.invite(this.inviteUsername, this.inviteTeam, this.inviteVerificationValue);
