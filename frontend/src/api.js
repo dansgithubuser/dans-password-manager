@@ -9,9 +9,7 @@ const privateOps = ['decrypt', 'unwrapKey'];
 const teamSecretOps = ['encrypt', 'decrypt'];
 const symmetricKeyOps = ['wrapKey', 'unwrapKey'];
 
-const api = axios.create({
-  baseURL: 'http://localhost:8080/api/',
-});
+const api = axios.create({ baseURL: '/api/' });
 
 api.defaults.xsrfHeaderName = 'X-CSRFToken';
 api.defaults.xsrfCookieName = 'csrftoken';
