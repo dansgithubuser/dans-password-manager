@@ -155,6 +155,10 @@ export default {
     itemCreate(team) {
       api.itemCreate(this.itemCreateName, this.itemCreateTarget, this.itemCreateValue, this.itemCreateNotes, team)
         .then(() => this.updateItems(team));
+      this.itemCreateName = '';
+      this.itemCreateTarget= '';
+      this.itemCreateValue = '';
+      this.itemCreateNotes = '';
     },
     itemUpdate(item, team) {
       api.itemUpdate(item.id, item.name, item.target, item.value, item.notes, team)
