@@ -12,7 +12,7 @@
 
 <template>
   <v-container>
-    <v-btn v-if='is_dev' @click='test' style='position:fixed; right:0; z-index:100'>test</v-btn>
+    <v-btn v-if='isDev()' @click='test' style='position:fixed; right:0; z-index:100'>test</v-btn>
     <v-expansion-panels>
       <v-expansion-panel>
         <v-expansion-panel-header>signup</v-expansion-panel-header>
@@ -173,7 +173,7 @@ export default {
       await api.revoke(this.revokeUsername, this.revokeTeam);
       await this.updateTeams();
     },
-    is_dev() {
+    isDev() {
       return process.env.NODE_ENV == 'development';
     },
     async test() {
