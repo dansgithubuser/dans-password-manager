@@ -82,7 +82,7 @@
         <v-expansion-panel-header>verify</v-expansion-panel-header>
         <v-expansion-panel-content>
           <v-text-field v-model='verifyUsername' label='username'/>
-          <v-text-field v-model='verifyTeam' label='team'/>
+          <v-autocomplete v-model='verifyTeam' label='team' :items=teamNames />
           <v-btn @click='verify'>verify</v-btn>
           <v-list>
             <v-list-item v-for='(value, i) in verificationValues' :key='i'>
@@ -96,7 +96,7 @@
         <v-expansion-panel-header>invite</v-expansion-panel-header>
         <v-expansion-panel-content>
           <v-text-field v-model='inviteUsername' label='username'/>
-          <v-text-field v-model='inviteTeam' label='team'/>
+          <v-autocomplete v-model='inviteTeam' label='team' :items=teamNames />
           <v-text-field v-model='inviteVerificationValue' label='verification value'/>
           <v-btn @click='invite'>invite</v-btn>
         </v-expansion-panel-content>
@@ -106,7 +106,7 @@
         <v-expansion-panel-header>revoke</v-expansion-panel-header>
         <v-expansion-panel-content>
           <v-text-field v-model='revokeUsername' label='username'/>
-          <v-text-field v-model='revokeTeam' label='team'/>
+          <v-autocomplete v-model='revokeTeam' label='team' :items=teamNames />
           <v-btn @click='revoke'>revoke</v-btn>
         </v-expansion-panel-content>
       </v-expansion-panel>
@@ -129,6 +129,7 @@ export default {
     username: null,
     teamCreateName: '',
     teams: [],
+    teamNames: [],
     itemCreateName: '',
     itemCreateTarget: '',
     itemCreateValue: '',
@@ -165,6 +166,7 @@ export default {
     },
     async updateTeams() {
       this.teams = await api.teamList();
+      this.teamNames = this.teams.map(i => ({ text: i.name, value: i.id }));
       this.teamToItems = {};
       for (const team of this.teams) this.updateItems(team.id);
     },
