@@ -141,7 +141,7 @@ export default {
     },
     updateUsername() {
       this.username = localStorage.username;
-      this.updateTeams();
+      if (this.username) this.updateTeams();
     },
     teamCreate() {
       api.teamCreate(this.teamCreateName)
@@ -217,7 +217,6 @@ export default {
   },
   mounted() {
     this.updateUsername();
-    this.updateTeams();
   },
 }
 </script>
