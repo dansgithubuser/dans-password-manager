@@ -7,8 +7,8 @@ Use at your own risk -- I can only offer my personal blessing that the crypto he
 ### Heroku
 - `git clone --recursive`
 - `cd dans-password-manager`
-- ensure you're logged into Heroku CLI
-- `python go.py -d`
+- `heroku login`
+- `python go.py --first-deploy`
 
 ## Alternatives
 - KeePass -- not web-based
@@ -16,3 +16,9 @@ Use at your own risk -- I can only offer my personal blessing that the crypto he
 - Padlock -- not web-based
 - Passbolt -- account required to get installation instructions
 - Clipperz -- "The open source version of Clipperz is suitable for testing and educational purposes only."
+
+## todo
+- automate first deploy
+	- heroku buildpacks:add --index 1 heroku/nodejs
+	- heroku config:set NPM_CONFIG_PRODUCTION=false
+- who's in a team?
