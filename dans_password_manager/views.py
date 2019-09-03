@@ -92,12 +92,12 @@ def item(request):
     if request.method == 'POST':
         if 'id' in params:
             models.Item.objects.filter(id=params['id']).update(
-                **{i: params[i] for i in ['name', 'target', 'value', 'notes'] if i in params}
+                **{i: params[i] for i in ['name', 'target', 'user', 'value', 'notes'] if i in params}
             )
             return HttpResponse(status=204)
         else:
             item = models.Item.objects.create(
-                **{i: params[i] for i in ['name', 'target', 'value', 'notes']},
+                **{i: params[i] for i in ['name', 'target', 'user', 'value', 'notes']},
                 team_id=team_id,
             )
             return JsonResponse({'item': item.id}, status=201)
@@ -107,6 +107,7 @@ def item(request):
                 'id': i.id,
                 'name': i.name,
                 'target': i.target,
+                'user': i.user,
                 'value': i.value,
                 'notes': i.notes,
                 'team': i.team_id,
@@ -205,6 +206,7 @@ def rotate(request):
         for item in team.item_set.all():
             item_params = params['items'][str(item.id)]
             models.Item.objects.filter(id=item.id).update(
+                user =item_params['user' ],
                 value=item_params['value'],
                 notes=item_params['notes'],
             )

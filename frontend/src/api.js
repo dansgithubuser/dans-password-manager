@@ -263,21 +263,23 @@ export default {
     window.localStorage.teamSecrets = JSON.stringify(teamSecrets);
     return teams;
   },
-  async itemCreate(name, target, value, notes, team) {
+  async itemCreate(name, target, user, value, notes, team) {
     const teamSecret = await getTeamSecret(team);
+    user  = await encrypt(user , teamSecret);
     value = await encrypt(value, teamSecret);
     notes = await encrypt(notes, teamSecret);
     await api.post('item', {
-      name, target, value, notes, team,
+      name, target, user, value, notes, team,
       teamSecretUpdatedAt: JSON.parse(window.localStorage.teamSecretsUpdatedAt)[team],
     });
   },
-  async itemUpdate(id, name, target, value, notes, team) {
+  async itemUpdate(id, name, target, user, value, notes, team) {
     const teamSecret = await getTeamSecret(team);
+    user  = await encrypt(user , teamSecret);
     value = await encrypt(value, teamSecret);
     notes = await encrypt(notes, teamSecret);
     await api.post('item', {
-      id, name, target, value, notes,
+      id, name, target, user, value, notes,
       teamSecretUpdatedAt: JSON.parse(window.localStorage.teamSecretsUpdatedAt)[team],
     });
   },
@@ -286,6 +288,7 @@ export default {
     const items = (await api.get('item', { params: { team, teamSecretUpdatedAt } })).data.items;
     const teamSecret = await getTeamSecret(team);
     for (const i of items) {
+      i.user  = await decrypt(i.user , teamSecret);
       i.value = await decrypt(i.value, teamSecret);
       i.notes = await decrypt(i.notes, teamSecret);
     }
@@ -318,6 +321,7 @@ export default {
     const items = {};
     for (const item of oldItems) {
       items[item.id] = {
+        user : await encrypt(await decrypt(item.user , oldTeamSecret), newTeamSecret),
         value: await encrypt(await decrypt(item.value, oldTeamSecret), newTeamSecret),
         notes: await encrypt(await decrypt(item.notes, oldTeamSecret), newTeamSecret),
       };

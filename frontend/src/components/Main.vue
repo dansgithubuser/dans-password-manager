@@ -58,6 +58,7 @@
                   <v-list-item v-for='(item, j) in teamToItems[team.id]' :key='j'>
                     <v-text-field v-model='item.name' label='name'/>
                     <v-text-field v-model='item.target' label='target'/>
+                    <v-text-field v-model='item.user' label='user'/>
                     <v-text-field v-model='item.value' label='value' class='value'/>
                     <v-text-field v-model='item.notes' label='notes' class='notes'/>
                     <v-btn
@@ -67,6 +68,7 @@
                   <v-list-item>
                     <v-text-field v-model='itemCreateName' label='name'/>
                     <v-text-field v-model='itemCreateTarget' label='target'/>
+                    <v-text-field v-model='itemCreateUser' label='user'/>
                     <v-text-field v-model='itemCreateValue' label='value' class='value'/>
                     <v-text-field v-model='itemCreateNotes' label='notes'/>
                     <v-btn @click='itemCreate(team.id)'>create item</v-btn>
@@ -132,6 +134,7 @@ export default {
     teamNames: [],
     itemCreateName: '',
     itemCreateTarget: '',
+    itemCreateUser: '',
     itemCreateValue: '',
     itemCreateNotes: '',
     teamToItems: {},
@@ -171,16 +174,30 @@ export default {
       for (const team of this.teams) this.updateItems(team.id);
     },
     itemCreate(team) {
-      api.itemCreate(this.itemCreateName, this.itemCreateTarget, this.itemCreateValue, this.itemCreateNotes, team)
-        .then(() => this.updateItems(team));
+      api.itemCreate(
+        this.itemCreateName,
+        this.itemCreateTarget,
+        this.itemCreateUser,
+        this.itemCreateValue,
+        this.itemCreateNotes,
+        team,
+      ).then(() => this.updateItems(team));
       this.itemCreateName = '';
-      this.itemCreateTarget= '';
+      this.itemCreateTarget = '';
+      this.itemCreateUser = '';
       this.itemCreateValue = '';
       this.itemCreateNotes = '';
     },
     itemUpdate(item, team) {
-      api.itemUpdate(item.id, item.name, item.target, item.value, item.notes, team)
-        .then(() => this.updateItems(team));
+      api.itemUpdate(
+        item.id,
+        item.name,
+        item.target,
+        item.user,
+        item.value,
+        item.notes,
+        team,
+      ).then(() => this.updateItems(team));
     },
     async updateItems(team) {
       this.$set(this.teamToItems, team, await api.itemList(team));
@@ -210,7 +227,14 @@ export default {
       await api.teamCreate('test-team-name');
       var teams = await api.teamList();
       const team = teams[0].id;
-      await api.itemCreate('test-item-name', 'test-item-target', 'test-item-value', 'test-item-notes', team);
+      await api.itemCreate(
+        'test-item-name',
+        'test-item-target',
+        'test-item-user',
+        'test-item-value',
+        'test-item-notes',
+        team,
+      );
       var items = await api.itemList(team);
       if (items[0].value != 'test-item-value') console.error('wrong value for user1!'); // eslint-disable-line no-console
       // invite
@@ -228,6 +252,7 @@ export default {
       items = await api.itemList(team);
       if (items[0].value != 'test-item-value') console.error('wrong value for user2!'); // eslint-disable-line no-console
       // revoke
+      console.log('revoking'); // eslint-disable-line no-console
       await api.login(user1, password);
       await api.revoke(user2, team);
       await api.teamList();

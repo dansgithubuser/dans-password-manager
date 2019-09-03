@@ -74,6 +74,7 @@ class SmokeTestCase(TestCase):
         item_params = {
             'name': 'smoke_item_name',
             'target': 'smoke_item_target',
+            'user': 'smoke_item_user',
             'value': 'smoke_item_value',
             'notes': 'smoke_item_notes',
             'team': team.id,
@@ -188,7 +189,7 @@ class SmokeTestCase(TestCase):
         response = client.post('/api/rotate', {
             'team': team.id,
             'teamSecrets': {user.id: admin_team_secret},
-            'items': {item.id: {'value': 'rotated value', 'notes': 'rotated notes'}},
+            'items': {item.id: {'user': 'rotated user', 'value': 'rotated value', 'notes': 'rotated notes'}},
         })
         self.assertEqual(response.status_code, 204)
         self.assertEqual(models.Membership.objects.get(user=user, team=team).team_secret, admin_team_secret)

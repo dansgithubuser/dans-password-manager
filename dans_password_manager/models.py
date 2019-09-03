@@ -21,6 +21,7 @@ class Membership(models.Model):
 class Item(models.Model):
     name = models.TextField()
     target = models.TextField()
+    user = models.TextField()
     value = models.TextField()
     notes = models.TextField()
     team = models.ForeignKey(Team, on_delete=models.CASCADE)
