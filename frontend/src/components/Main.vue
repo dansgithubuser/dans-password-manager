@@ -3,9 +3,9 @@
   color: rgba(0, 0, 0, 0) !important;
 }
 .value ::selection {
-    color: rgba(0, 0, 0, 0) !important;
+  color: rgba(0, 0, 0, 0) !important;
 }
-.notes input {
+.notes textarea {
   color: rgba(0, 0, 0, 0) !important;
 }
 </style>
@@ -60,7 +60,7 @@
                     <v-text-field v-model='item.target' label='target'/>
                     <v-text-field v-model='item.user' label='user'/>
                     <v-text-field v-model='item.value' label='value' class='value'/>
-                    <v-text-field v-model='item.notes' label='notes' class='notes'/>
+                    <v-textarea v-model='item.notes' label='notes' class='notes'/>
                     <v-btn
                       @click='itemUpdate(item, team.id)'
                     >update item</v-btn>
@@ -70,7 +70,7 @@
                     <v-text-field v-model='itemCreateTarget' label='target'/>
                     <v-text-field v-model='itemCreateUser' label='user'/>
                     <v-text-field v-model='itemCreateValue' label='value' class='value'/>
-                    <v-text-field v-model='itemCreateNotes' label='notes'/>
+                    <v-textarea v-model='itemCreateNotes' label='notes'/>
                     <v-btn @click='itemCreate(team.id)'>create item</v-btn>
                   </v-list-item>
                 </v-list>
