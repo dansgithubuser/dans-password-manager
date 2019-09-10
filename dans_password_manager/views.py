@@ -28,6 +28,7 @@ def signup(request):
     auth.login(request, user)
     return HttpResponse(status=201)
 
+@csrf_exempt
 def login(request):
     params = json.loads(request.body.decode())
     user = auth.authenticate(
