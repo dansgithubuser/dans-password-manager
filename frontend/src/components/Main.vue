@@ -48,6 +48,18 @@
       <v-expansion-panel>
         <v-expansion-panel-header>items</v-expansion-panel-header>
         <v-expansion-panel-content>
+        <v-list>
+          <v-list-item>
+            <v-text-field v-model='search' label='search'/>
+          </v-list-item>
+          <v-list-item v-for='item in searchResults'>
+            <v-text-field v-model='item.name'   label='name'  />
+            <v-text-field v-model='item.target' label='target'/>
+            <v-text-field v-model='item.user'   label='user'  />
+            <v-text-field v-model='item.value'  label='value'  class='value'/>
+            <v-textarea   v-model='item.notes'  label='notes'  class='notes'/>
+          </v-list-item>
+        </v-list>
           <v-expansion-panels>
             <v-expansion-panel v-for='(team, i) in teams' :key='i'>
               <v-expansion-panel-header>
@@ -132,6 +144,7 @@ export default {
     teamCreateName: '',
     teams: [],
     teamNames: [],
+    search: '',
     itemCreateName: '',
     itemCreateTarget: '',
     itemCreateUser: '',
@@ -263,6 +276,26 @@ export default {
       if (teams.length != 0) console.error('user2 was not revoked from team!'); // eslint-disable-line no-console
       //
       console.log('done!'); // eslint-disable-line no-console
+    },
+  },
+  computed: {
+    searchResults() {
+      if (this.search.length < 3) return;
+      const result = [];
+      for (const team in this.teamToItems) {
+        const items = this.teamToItems[team];
+        for (const item of items) {
+          var match = false;
+          const haystack = [item.name, item.target, item.user].join(' ').toLowerCase();
+          for (const term of this.search.split(' '))
+            if (haystack.includes(term)) {
+              match = true;
+              break;
+            }
+          if (match) result.push(item)
+        }
+      }
+      return result;
     },
   },
   mounted() {
