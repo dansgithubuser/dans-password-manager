@@ -1,15 +1,3 @@
-<style>
-.value input {
-  color: rgba(0, 0, 0, 0) !important;
-}
-.value ::selection {
-  color: rgba(0, 0, 0, 0) !important;
-}
-.notes textarea {
-  color: rgba(0, 0, 0, 0) !important;
-}
-</style>
-
 <template>
   <v-container>
     <v-btn v-if='isDev()' @click='test' style='position:fixed; right:0; z-index:100'>test</v-btn>
@@ -52,12 +40,8 @@
           <v-list-item>
             <v-text-field v-model='search' label='search'/>
           </v-list-item>
-          <v-list-item v-for='item in searchResults'>
-            <v-text-field v-model='item.name'   label='name'  />
-            <v-text-field v-model='item.target' label='target'/>
-            <v-text-field v-model='item.user'   label='user'  />
-            <v-text-field v-model='item.value'  label='value'  class='value'/>
-            <v-textarea   v-model='item.notes'  label='notes'  class='notes'/>
+          <v-list-item v-for='{item, teamId} in searchResults' :key='item.id'>
+            <Item :item='item' :teamId='teamId' :updateItems='updateItems'/>
           </v-list-item>
         </v-list>
           <v-expansion-panels>
@@ -67,23 +51,11 @@
               </v-expansion-panel-header>
               <v-expansion-panel-content>
                 <v-list>
-                  <v-list-item v-for='(item, j) in teamToItems[team.id]' :key='j'>
-                    <v-text-field v-model='item.name' label='name'/>
-                    <v-text-field v-model='item.target' label='target'/>
-                    <v-text-field v-model='item.user' label='user'/>
-                    <v-text-field v-model='item.value' label='value' class='value'/>
-                    <v-textarea v-model='item.notes' label='notes' class='notes'/>
-                    <v-btn
-                      @click='itemUpdate(item, team.id)'
-                    >update item</v-btn>
-                  </v-list-item>
                   <v-list-item>
-                    <v-text-field v-model='itemCreateName' label='name'/>
-                    <v-text-field v-model='itemCreateTarget' label='target'/>
-                    <v-text-field v-model='itemCreateUser' label='user'/>
-                    <v-text-field v-model='itemCreateValue' label='value' class='value'/>
-                    <v-textarea v-model='itemCreateNotes' label='notes'/>
-                    <v-btn @click='itemCreate(team.id)'>create item</v-btn>
+                    <Item :item='itemCreate' :teamId='team.id' :updateItems='updateItems' :create=true />
+                  </v-list-item>
+                  <v-list-item v-for='(item, j) in teamToItems[team.id]' :key='j'>
+                    <Item :item='item' :teamId='team.id' :updateItems='updateItems'/>
                   </v-list-item>
                 </v-list>
               </v-expansion-panel-content>
@@ -129,11 +101,16 @@
 </template>
 
 <script>
+import Item from './Item.vue'
+
 import api from '../api.js'
 import uuidv4 from 'uuid/v4'
 
 export default {
   name: 'Main',
+  components: {
+    Item,
+  },
   data: () => ({
     signupUsername: '',
     signupPassword: '',
@@ -145,11 +122,7 @@ export default {
     teams: [],
     teamNames: [],
     search: '',
-    itemCreateName: '',
-    itemCreateTarget: '',
-    itemCreateUser: '',
-    itemCreateValue: '',
-    itemCreateNotes: '',
+    itemCreate: {},
     teamToItems: {},
     verifyUsername: '',
     verifyTeam: '',
@@ -186,34 +159,8 @@ export default {
       this.teamToItems = {};
       for (const team of this.teams) this.updateItems(team.id);
     },
-    itemCreate(team) {
-      api.itemCreate(
-        this.itemCreateName,
-        this.itemCreateTarget,
-        this.itemCreateUser,
-        this.itemCreateValue,
-        this.itemCreateNotes,
-        team,
-      ).then(() => this.updateItems(team));
-      this.itemCreateName = '';
-      this.itemCreateTarget = '';
-      this.itemCreateUser = '';
-      this.itemCreateValue = '';
-      this.itemCreateNotes = '';
-    },
-    itemUpdate(item, team) {
-      api.itemUpdate(
-        item.id,
-        item.name,
-        item.target,
-        item.user,
-        item.value,
-        item.notes,
-        team,
-      ).then(() => this.updateItems(team));
-    },
-    async updateItems(team) {
-      this.$set(this.teamToItems, team, await api.itemList(team));
+    async updateItems(teamId) {
+      this.$set(this.teamToItems, teamId, await api.itemList(teamId));
     },
     verify() {
       api.verify(this.verifyUsername, this.verifyTeam);
@@ -282,8 +229,8 @@ export default {
     searchResults() {
       if (this.search.length < 3) return;
       const result = [];
-      for (const team in this.teamToItems) {
-        const items = this.teamToItems[team];
+      for (const teamId in this.teamToItems) {
+        const items = this.teamToItems[teamId];
         for (const item of items) {
           var match = false;
           const haystack = [item.name, item.target, item.user].join(' ').toLowerCase();
@@ -292,7 +239,7 @@ export default {
               match = true;
               break;
             }
-          if (match) result.push(item)
+          if (match) result.push({ item, teamId: Number(teamId) })
         }
       }
       return result;
@@ -300,6 +247,7 @@ export default {
   },
   mounted() {
     this.updateUsername();
+    window.refs = { app: this };
   },
 }
 </script>
