@@ -113,7 +113,7 @@ def item(request):
                 'notes': i.notes,
                 'team': i.team_id,
             }
-            for i in models.Item.objects.filter(team_id=team_id)
+            for i in models.Item.objects.filter(team_id=team_id).order_by('id')
         ]})
 
 def verify(request):
