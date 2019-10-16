@@ -24,8 +24,21 @@
       <v-textarea v-model='item.notes' label='notes' class='notes' :no-resize=true :solo=true />
     </v-col>
     <v-col>
-      <v-btn v-if='!create' @click='itemUpdate(item, teamId)'>update item</v-btn>
-      <v-btn v-if='create' @click='itemCreate(teamId)'>create item</v-btn>
+      <template v-if='!create'>
+        <v-btn @click='itemUpdate(item, teamId)'>update item</v-btn>
+      </template>
+      <template v-else>
+        <v-row>
+          <v-col>
+            <v-btn @click='itemCreate(teamId)'>create item</v-btn>
+          </v-col>
+        </v-row>
+        <v-row>
+          <v-col>
+            <v-btn @click='random()'>random</v-btn>
+          </v-col>
+        </v-row>
+      </template>
     </v-col>
   </v-row>
 </div></template>
@@ -66,6 +79,18 @@ export default {
         item.notes,
         teamId,
       ).then(() => this.updateItems(teamId));
+    },
+    random() {
+      const pool = [
+        'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+        'abcdefghijklmnopqrstuvwxyz',
+        '0123456789',
+      ].join('');
+      this.$emit('value',
+        window.crypto.getRandomValues(new Uint8Array(32)).reduce((r, i) => {
+          return r + pool[i % pool.length];
+        }, ''),
+      );
     },
   },
 }

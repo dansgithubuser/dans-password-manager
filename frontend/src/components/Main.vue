@@ -52,7 +52,7 @@
               <v-expansion-panel-content>
                 <v-list>
                   <v-list-item>
-                    <Item :item='itemCreate' :teamId='team.id' :updateItems='updateItems' :create=true />
+                    <Item :item='itemCreate' :teamId='team.id' :updateItems='updateItems' :create=true @value='itemCreate.value = $event' />
                   </v-list-item>
                   <v-list-item v-for='(item, j) in teamToItems[team.id]' :key='j'>
                     <Item :item='item' :teamId='team.id' :updateItems='updateItems'/>
@@ -122,7 +122,13 @@ export default {
     teams: [],
     teamNames: [],
     search: '',
-    itemCreate: {},
+    itemCreate: {
+      name: '',
+      target: '',
+      user: '',
+      value: '',
+      notes: '',
+    },
     teamToItems: {},
     verifyUsername: '',
     verifyTeam: '',
@@ -248,6 +254,7 @@ export default {
   mounted() {
     this.updateUsername();
     window.refs = { app: this };
+    this.console = console;
   },
 }
 </script>
