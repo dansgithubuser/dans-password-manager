@@ -18,6 +18,8 @@ Use at your own risk -- I can only offer my personal blessing that the crypto he
 - Clipperz -- "The open source version of Clipperz is suitable for testing and educational purposes only."
 
 ## todo
+- limit search to certain teams
+- better mobile layout
 - security review
 - automate first deploy
 	- heroku buildpacks:add --index 1 heroku/nodejs
