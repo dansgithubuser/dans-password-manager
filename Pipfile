@@ -6,6 +6,7 @@ verify_ssl = true
 django = "*"
 gunicorn = "*"
 django-heroku = "*"
+jwcrypto = "*"
 
 [requires]
 python_version = "3.6"
