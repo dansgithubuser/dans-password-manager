@@ -272,13 +272,15 @@ export default {
     if (saltsResp.data.salt2) {
       serverPassword = await getUserServerPassword(password, new Uint8Array(saltsResp.data.salt2));
     } else {
-      const salt2 = genRandom(16);
-      serverPassword = await getUserServerPassword(password, salt2);
-      alert(`Optional security improvement: ask your admin to set your salt2 to ${JSON.stringify(Array.from(salt2))} and your server password to ${serverPassword}`);
       serverPassword = password;
     }
     const response = await api.post('login', { username, password: serverPassword });
     if (response.status == 200) {
+      if (!saltsResp.data.salt2) {
+        const salt2 = genRandom(16);
+        serverPassword = await getUserServerPassword(password, salt2);
+        alert(`Optional security improvement: ask your admin to set your salt2 to ${JSON.stringify(Array.from(salt2))} and your server password to ${serverPassword}`);
+      }
       const symmetricKey = await getUserSymmetricKey(password, new Uint8Array(saltsResp.data.salt));
       const privateKey = await unwrapPrivateKey(response.data.privateKey, symmetricKey);
       await storeUserInfo(username, symmetricKey, response.data.publicKey, privateKey);
