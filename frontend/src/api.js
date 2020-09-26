@@ -202,11 +202,9 @@ async function decrypt(value, key) {
 }
 
 export default {
-  async signup(username, password, password_confirmation) {
+  async signup(username, password) {
     const params = new URLSearchParams();
     params.append('username', username);
-    params.append('password1', password);
-    params.append('password2', password_confirmation);
     const salt = genRandom(16);
     params.append('salt', JSON.stringify(Array.from(salt)));
     const symmetricKey = await getUserSymmetricKey(password, salt);
@@ -229,6 +227,7 @@ export default {
     return response;
   },
   async login(username, password) {
+    const challenge = await api.post('login_challenge', { username });
     const response = await api.post('login', { username, password });
     if (response.status == 200) {
       const symmetricKey = await getUserSymmetricKey(password, new Uint8Array(response.data.salt));

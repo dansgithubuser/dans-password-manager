@@ -1,24 +1,22 @@
 from . import models
 
 from django.contrib import auth
-from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from django.db import transaction
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 
+import jwcrypto
+
 import json
-import random
+import secrets
 
 @csrf_exempt
 def signup(request):
-    form = UserCreationForm(request.POST)
-    if not form.is_valid():
-        return JsonResponse(form.errors, status=400)
-    form.save()
-    username = form.cleaned_data.get('username')
-    raw_password = form.cleaned_data.get('password1')
-    user = auth.authenticate(username=username, password=raw_password)
+    username = request.POST['username']
+    password = username
+    User.objects.create_user(username, password=password)
+    user = auth.authenticate(username=username, password=password)
     user.userinfo = models.UserInfo.objects.create(
         user=user,
         salt=request.POST['salt'],
@@ -29,19 +27,31 @@ def signup(request):
     return HttpResponse(status=201)
 
 @csrf_exempt
+def login_challenge(request):
+    params = json.loads(request.body.decode())
+    user = User.objects.get(username=params['username'])
+    nonce = secrets.token_hex()
+    user.userinfo.nonce = nonce
+    user.userinfo.save()
+    public_key = jwcrypto.jwk.JWK.from_json(user.userinfo.public_key)
+    nonce_encrypted = jwcrypto.jwe.JWE(nonce, recipient=public_key).serialize()
+    return JsonResponse({
+        'salt': json.loads(user.userinfo.salt),
+        'publicKey': user.userinfo.public_key,
+        'privateKey': json.loads(user.userinfo.private_key),
+        'nonce_encrypted': nonce_encrypted,
+    }, status=200)
+
+@csrf_exempt
 def login(request):
     params = json.loads(request.body.decode())
     user = auth.authenticate(
         username=params['username'],
-        password=params['password'],
+        password=params['username'],
     )
-    if user:
+    if user and params['nonce'] == user.userinfo.nonce:
         auth.login(request, user)
-        return JsonResponse({
-            'salt': json.loads(user.userinfo.salt),
-            'publicKey': user.userinfo.public_key,
-            'privateKey': json.loads(user.userinfo.private_key),
-        }, status=200)
+        return HttpResponse(status=200)
     else:
         return HttpResponse(status=400)
 
@@ -124,7 +134,7 @@ def verify(request):
     if not membership[0].admin:
         return HttpResponse(status=403)
     invitee = User.objects.get(username=params['username'])
-    value = str(random.randint(100000, 999999))
+    value = '{:06}'.format(secrets.randbelow(1_000_000))
     models.Verification.objects.create(
         value=value,
         user=invitee,
