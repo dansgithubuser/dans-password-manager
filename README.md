@@ -48,9 +48,6 @@ During an invitation, we want to make sure human error doesn't compromise a team
 During a revocation, if we leave the team symmetric key alone, then the revoked user still has the team symmetric key and can continue to get updates on the team's credentials as easily as if they were stored in the plain. So upon revocation, in the browser of the revoker, we generate a new team symmetric key, encrypt the team's passwords under that new team symmetric key, encrypt the new team symmetric key under each team member's public key, and send it all off to the server.
 
 ## To Do
-- security review
-	- auth without using password (use pub/priv keys)
-- limit search to certain teams
 - better mobile layout
 - automate first deploy
 	- heroku buildpacks:add --index 1 heroku/nodejs

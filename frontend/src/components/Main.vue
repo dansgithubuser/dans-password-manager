@@ -36,14 +36,6 @@
       <v-expansion-panel>
         <v-expansion-panel-header>items</v-expansion-panel-header>
         <v-expansion-panel-content>
-        <v-list>
-          <v-list-item>
-            <v-text-field v-model='search' label='search'/>
-          </v-list-item>
-          <v-list-item v-for='{item, teamId} in searchResults' :key='item.id'>
-            <Item :item='item' :teamId='teamId' :updateItems='updateItems'/>
-          </v-list-item>
-        </v-list>
           <v-expansion-panels>
             <v-expansion-panel v-for='(team, i) in teams' :key='i'>
               <v-expansion-panel-header>
@@ -52,9 +44,12 @@
               <v-expansion-panel-content>
                 <v-list>
                   <v-list-item>
+                    <v-text-field v-model='teamToFilter[team.id]' label='filter'/>
+                  </v-list-item>
+                  <v-list-item>
                     <Item :item='itemCreate' :teamId='team.id' :updateItems='updateItems' :create=true @value='itemCreate.value = $event' />
                   </v-list-item>
-                  <v-list-item v-for='(item, j) in teamToItems[team.id]' :key='j'>
+                  <v-list-item v-for='(item, j) in filterItems(team.id)' :key='j'>
                     <Item :item='item' :teamId='team.id' :updateItems='updateItems'/>
                   </v-list-item>
                 </v-list>
@@ -121,7 +116,7 @@ export default {
     teamCreateName: '',
     teams: [],
     teamNames: [],
-    search: '',
+    teamToFilter: {},
     itemCreate: {
       name: '',
       target: '',
@@ -167,6 +162,30 @@ export default {
     },
     async updateItems(teamId) {
       this.$set(this.teamToItems, teamId, await api.itemList(teamId));
+    },
+    filterItems(teamId) {
+      const filter = this.teamToFilter[teamId];
+      const items = this.teamToItems[teamId];
+      if (!filter || filter.length < 3) return items;
+      const result = {};
+      for (const item of items) {
+        let score;
+        // name starts with
+        if (item.name.toLowerCase().startsWith(filter))
+          score = 1;
+        // name or target contains
+        else if (item.name.toLowerCase().includes(filter) || item.target.toLowerCase().includes(filter))
+          score = 2;
+        // user contains
+        else if (item.user.toLowerCase().includes(filter))
+          score = 3;
+        // add to result
+        if (score)
+          result[score+item.name] = item;
+        // early exit
+        if (result.length > 5) break;
+      }
+      return Object.keys(result).sort().map(i => result[i]);
     },
     verify() {
       api.verify(this.verifyUsername, this.verifyTeam);
@@ -229,26 +248,6 @@ export default {
       if (teams.length != 0) console.error('user2 was not revoked from team!'); // eslint-disable-line no-console
       //
       console.log('done!'); // eslint-disable-line no-console
-    },
-  },
-  computed: {
-    searchResults() {
-      if (this.search.length < 3) return;
-      const result = [];
-      for (const teamId in this.teamToItems) {
-        const items = this.teamToItems[teamId];
-        for (const item of items) {
-          var match = false;
-          const haystack = [item.name, item.target, item.user].join(' ').toLowerCase();
-          for (const term of this.search.split(' '))
-            if (haystack.includes(term)) {
-              match = true;
-              break;
-            }
-          if (match) result.push({ item, teamId: Number(teamId) })
-        }
-      }
-      return result;
     },
   },
   mounted() {
