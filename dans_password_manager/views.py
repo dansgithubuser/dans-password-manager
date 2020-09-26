@@ -6,7 +6,7 @@ from django.db import transaction
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 
-import jwcrypto
+from jwcrypto import jwk, jwe
 
 import json
 import secrets
@@ -20,21 +20,45 @@ def signup(request):
     user.userinfo = models.UserInfo.objects.create(
         user=user,
         salt=request.POST['salt'],
-        public_key=request.POST['publicKey'],
+        public_key=request.POST['pem'],
         private_key=request.POST['privateKey'],
     )
     auth.login(request, user)
     return HttpResponse(status=201)
+
+def encrypt():
+    from Crypto.PublicKey import RSA
+    from Crypto.Cipher import PKCS1_OAEP
+    import base64
+    n = 'u8EnFgpSP2UTxM3L_AjY1w3NAvFjgpdH4x5pBeeaFyJz_qkrbxuU99cg3xt5SfqIVG7Tq4KZnCba7ccXVrwFXP8viFgcbqZiKaNMPOwWZBldBJYN0VooQTolhnRXzfr4KLjykVFmVVyaeAYt1XmpIQGVht-pzGu7XccZNJhdERHifkpvwkJ-I1ny4Q1sl_2taLMJJ-YXrRXSFzyay4YvNc4GiVX7f8R-fL11R4DTluX5342GzOFU0WxLGLftm2fen2R7WoLPS-4Y8ytnq68yaKaQjPADhd653bA6qM5XuZtDHDNTlmzBpiEJPv7auILBIUs5X40d_eaPi8NwPzoI4rMn3r6gnIZIQ4FQ_XokYqA4H5tOKi44v70OdoBqdU3D92Hph6Omcz4WKvv-jxiPy-QtKcQhP9gVLIXFbPoRQmp1ZcQrgQsqhe36eQb_T-gRxIrTYqFHNrYel9CTBagfbbV8UKP84FjtsJdd3FCaOvqi6o9SexPAKsW9tNzb52xosM1FwVicmisOsFciA4ojr7NyWwDQofFQshzw6hiPxGnwDbW-vHmWviK0oq1Mu5lNpETZjX9vvsobU4nPrdNCBU_Doo-unhefR98yu__BfYkby-TUeUfZfQVXHqtrMcg0BTGtf2nrLz2bbhU03kRXprbiH9uzcZJ3LmBX3s3yeP8'
+    e = 'AQAB'
+    def deco(x):
+        return int.from_bytes(base64.urlsafe_b64decode(x+'==='), 'big')
+    rsa_key = RSA.construct((deco(n), deco(e)))
+    cipher = PKCS1_OAEP.new(rsa_key)
+    return cipher.encrypt(b'rofl')
 
 @csrf_exempt
 def login_challenge(request):
     params = json.loads(request.body.decode())
     user = User.objects.get(username=params['username'])
     nonce = secrets.token_hex()
+    print('nonce:', nonce)
     user.userinfo.nonce = nonce
     user.userinfo.save()
-    public_key = jwcrypto.jwk.JWK.from_json(user.userinfo.public_key)
-    nonce_encrypted = jwcrypto.jwe.JWE(nonce, recipient=public_key).serialize()
+    print('public key:', user.userinfo.public_key)
+    public_key = jwk.JWK.from_json(user.userinfo.public_key)
+    nonce_encrypted = jwe.JWE(
+        nonce,
+        recipient=public_key,
+        protected={
+            'alg': 'RSA-OAEP-256',
+            'enc': 'A256CBC-HS512',
+            'typ': 'JWE',
+            'kid': public_key.thumbprint(),
+        },
+    ).serialize()
+    print('nonce encrypted:', nonce_encrypted)
     return JsonResponse({
         'salt': json.loads(user.userinfo.salt),
         'publicKey': user.userinfo.public_key,
