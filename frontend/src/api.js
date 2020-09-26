@@ -139,6 +139,39 @@ async function getUserSymmetricKey(password, salt) {
   );
 }
 
+// password: string
+// salt: Uint8Array(16)
+// return: string
+async function getUserServerPassword(password, salt) {
+  if (password === undefined) return localStorage.serverPassword;
+  const material = await subtle.importKey(
+    'raw',
+    textEncode(password),
+    { name: 'PBKDF2' },
+    false,
+    ['deriveKey'],
+  );
+  salt = Uint8Array.from(salt);
+  salt[0] += 1;
+  const key = await subtle.deriveKey(
+    {
+      name: 'PBKDF2',
+      salt,
+      iterations: 100000,
+      hash: 'SHA-256',
+    },
+    material,
+    { 'name': 'AES-GCM', length: 256 },
+    true,
+    symmetricKeyOps,
+  );
+  const serverPassword = await subtle.exportKey('raw', key);
+  return (new Uint8Array(serverPassword)).reduce(
+    (s, i) => s + i.toString(16).padStart(2, '0'),
+    '',
+  );
+}
+
 // username: string
 // symmmetricKey: key object
 // publicKey: serialized JWK
@@ -202,11 +235,16 @@ async function decrypt(value, key) {
 }
 
 export default {
-  async signup(username, password, password_confirmation) {
+  async signup(username, password, passwordConfirmation) {
+    if (password !== passwordConfirmation)
+      throw new Error('password confirmation is different than password');
     const params = new URLSearchParams();
     params.append('username', username);
-    params.append('password1', password);
-    params.append('password2', password_confirmation);
+    const salt2 = genRandom(16);
+    params.append('salt2', JSON.stringify(Array.from(salt2)));
+    const serverPassword = await getUserServerPassword(password, salt2);
+    params.append('password1', serverPassword);
+    params.append('password2', serverPassword);
     const salt = genRandom(16);
     params.append('salt', JSON.stringify(Array.from(salt)));
     const symmetricKey = await getUserSymmetricKey(password, salt);
@@ -229,9 +267,19 @@ export default {
     return response;
   },
   async login(username, password) {
-    const response = await api.post('login', { username, password });
+    const saltsResp = await api.get('salts', { params: { username } });
+    let serverPassword;
+    if (saltsResp.data.salt2) {
+      serverPassword = await getUserServerPassword(password, new Uint8Array(saltsResp.data.salt2));
+    } else {
+      const salt2 = genRandom(16);
+      serverPassword = await getUserServerPassword(password, salt2);
+      alert(`Optional security improvement: ask your admin to set your salt2 to ${JSON.stringify(Array.from(salt2))} and your server password to ${serverPassword}`);
+      serverPassword = password;
+    }
+    const response = await api.post('login', { username, password: serverPassword });
     if (response.status == 200) {
-      const symmetricKey = await getUserSymmetricKey(password, new Uint8Array(response.data.salt));
+      const symmetricKey = await getUserSymmetricKey(password, new Uint8Array(saltsResp.data.salt));
       const privateKey = await unwrapPrivateKey(response.data.privateKey, symmetricKey);
       await storeUserInfo(username, symmetricKey, response.data.publicKey, privateKey);
     }

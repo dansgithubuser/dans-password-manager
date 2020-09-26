@@ -22,11 +22,19 @@ def signup(request):
     user.userinfo = models.UserInfo.objects.create(
         user=user,
         salt=request.POST['salt'],
+        salt2=request.POST['salt2'],
         public_key=request.POST['publicKey'],
         private_key=request.POST['privateKey'],
     )
     auth.login(request, user)
     return HttpResponse(status=201)
+
+def salts(request):
+    user = User.objects.get(username=request.GET['username'])
+    return JsonResponse({
+        'salt': json.loads(user.userinfo.salt),
+        'salt2': json.loads(user.userinfo.salt2),
+    }, status=200)
 
 @csrf_exempt
 def login(request):
@@ -38,7 +46,6 @@ def login(request):
     if user:
         auth.login(request, user)
         return JsonResponse({
-            'salt': json.loads(user.userinfo.salt),
             'publicKey': user.userinfo.public_key,
             'privateKey': json.loads(user.userinfo.private_key),
         }, status=200)
