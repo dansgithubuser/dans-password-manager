@@ -1,49 +1,82 @@
 <style>
-.value input {
+
+.value {
   color: rgba(0, 0, 0, 0) !important;
 }
-.value ::selection {
+.value::selection {
   color: rgba(0, 0, 0, 0) !important;
 }
-.notes textarea {
+
+.notes {
   color: rgba(0, 0, 0, 0) !important;
+  resize: none;
 }
+
+.label {
+  font-size: small;
+  color: gray;
+}
+
+.border {
+  border-style: solid;
+}
+.bg-lightgray {
+  background-color: lightgray;
+}
+
+.row {
+  display: flex;
+}
+.col {
+  display: flex;
+  flex-direction: column;
+}
+
+.mb {
+  margin-bottom: 1em;
+}
+
+.hidden {
+  visibility: hidden;
+}
+
 </style>
 
-<template><div>
-  <v-row>
-    <v-col>
-      <v-text-field v-model='item.name' label='name'/>
-      <v-text-field v-model='item.target' label='target'/>
-    </v-col>
-    <v-col>
-      <v-text-field v-model='item.user' label='user'/>
-      <v-text-field v-model='item.value' label='value' class='value'/>
-    </v-col>
-    <v-col>
-      <v-textarea v-model='item.notes' label='notes' class='notes' :no-resize=true :solo=true />
-    </v-col>
-    <v-col>
+<template>
+  <div class='row'>
+    <div class='col'>
+      <label class='label'>name</label>
+      <input v-model='item.name' class='border mb'/>
+      <label class='label'>target</label>
+      <input v-model='item.target' class='border mb'/>
+    </div>
+    <div class='col'>
+      <label class='label'>user</label>
+      <input v-model='item.user' class='border mb'/>
+      <label class='label'>value</label>
+      <input v-model='item.value' class='border mb value'/>
+    </div>
+    <div class='col'>
+      <label class='label'>notes</label>
+      <textarea v-model='item.notes' class='border mb notes' style='height: 100%'/>
+    </div>
+    <div class='col'>
       <template v-if='!create'>
-        <v-btn @click='itemUpdate(item, teamId)'>update item</v-btn>
+        <label class='hidden'>x</label>
+        <button @click='itemUpdate(item, teamId)' class='bg-lightgray mb'>update item</button>
       </template>
       <template v-else>
-        <v-row>
-          <v-col>
-            <v-btn @click='itemCreate(teamId)'>create item</v-btn>
-          </v-col>
-        </v-row>
-        <v-row>
-          <v-col>
-            <v-btn @click='random()'>random</v-btn>
-          </v-col>
-        </v-row>
+        <label class='hidden'>x</label>
+        <button @click='itemCreate(teamId)' class='bg-lightgray mb'>create item</button>
+        <label class='hidden'>x</label>
+        <button @click='random()' class='bg-lightgray mb'>random</button>
       </template>
-    </v-col>
-  </v-row>
-</div></template>
+    </div>
+  </div>
+</template>
 
 <script>
+
 import api from '../api.js'
 
 export default {
@@ -94,4 +127,5 @@ export default {
     },
   },
 }
+
 </script>
