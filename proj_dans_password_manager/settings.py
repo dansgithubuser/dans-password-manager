@@ -147,4 +147,16 @@ SECURE_HSTS_PRELOAD = True
 
 if os.environ.get('DJANGOGO_ENV') != 'local':
     import django_heroku
-    django_heroku.settings(locals())
+    django_heroku.settings(locals(), logging=False)
+    LOGGING = {
+        "version": 1,
+        "disable_existing_loggers": False,
+        "handlers": {
+            "console": {
+                "class": "logging.StreamHandler",
+            },
+        },
+        "loggers": {
+            "django": {"handlers": ["console"], "level": "INFO"},
+        },
+    }
