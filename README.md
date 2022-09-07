@@ -3,13 +3,6 @@ A free, open-source, easy-to-deploy, web-based password manager for teams.
 
 Use at your own risk -- I can only offer my personal blessing that the crypto here is correct.
 
-## Deploy
-### Heroku
-- `git clone --recursive`
-- `cd dans-password-manager`
-- `heroku login`
-- `python go.py --first-deploy`
-
 ## Alternatives
 - KeePass -- not web-based
 - BitWarden -- not free for teams
@@ -49,7 +42,4 @@ During a revocation, if we leave the team symmetric key alone, then the revoked 
 
 ## To Do
 - better mobile layout
-- automate first deploy
-	- heroku buildpacks:add --index 1 heroku/nodejs
-	- heroku config:set NPM_CONFIG_PRODUCTION=false
 - who's in a team?
