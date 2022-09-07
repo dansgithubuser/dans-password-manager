@@ -1,0 +1,28 @@
+version: '3'
+
+services:
+  db:
+    image: postgres:alpine
+    container_name: pwm-db
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: Dd2GgYZlDD84LD0oul70z5tex6lMcHcZ
+    logging:
+      options:
+        max-file: 3
+        max-size: 10m
+  main:
+    image: dans_password_manager:latest
+    container_name: pwm-main
+    env_file:
+      - env.txt
+    volumes:
+      - /etc/letsencrypt/live:/etc/letsencrypt/live:ro
+      - /etc/letsencrypt/archive:/etc/letsencrypt/archive:ro
+    logging:
+      options:
+        max-file: 3
+        max-size: 10m
+    ports:
+      - 8001:8001
+    restart: always

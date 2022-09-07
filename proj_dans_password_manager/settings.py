@@ -50,6 +50,7 @@ if os.environ.get('DJANGOGO_ENV', None) == 'local':
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -88,7 +89,7 @@ DATABASES = {
         'NAME': 'db_dans_password_manager',
         'USER': 'u_dans_password_manager',
         'PASSWORD': os.environ.get('DB_DANS_PASSWORD_MANAGER_PASSWORD', 'dev-password'),
-        'HOST': '127.0.0.1',
+        'HOST': os.environ.get('DB_DANS_PASSWORD_MANAGER_HOST', '127.0.0.1'),
         'PORT': '5432',
     }
 }
