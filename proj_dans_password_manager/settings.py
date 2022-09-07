@@ -29,7 +29,7 @@ else:
 DEBUG = False
 
 ALLOWED_HOSTS = [
-    'https://dans-password-manager.herokuapp.com/',
+    'pwm.dansonlinepresence.com',
 ]
 
 
@@ -146,8 +146,6 @@ SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD = True
 
 if os.environ.get('DJANGOGO_ENV') != 'local':
-    import django_heroku
-    django_heroku.settings(locals(), logging=False)
     LOGGING = {
         "version": 1,
         "disable_existing_loggers": False,
