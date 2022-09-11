@@ -111,4 +111,3 @@ if args.docker_create_env_file:
 
 if args.docker_run:
     invoke('docker compose up -d')
-    invoke(f'docker exec pwm-main python3 /pwm/manage.py migrate')
