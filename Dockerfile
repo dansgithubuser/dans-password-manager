@@ -29,6 +29,4 @@ EXPOSE 8001
 ENTRYPOINT gunicorn\
 	-w 4\
 	-b 0.0.0.0:8001\
-	--certfile=/etc/letsencrypt/live/$DOMAIN/fullchain.pem\
-	--keyfile=/etc/letsencrypt/live/$DOMAIN/privkey.pem\
 	proj_dans_password_manager.wsgi:application

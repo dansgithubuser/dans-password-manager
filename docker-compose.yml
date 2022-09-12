@@ -16,9 +16,6 @@ services:
     container_name: pwm-main
     env_file:
       - env.txt
-    volumes:
-      - /etc/letsencrypt/live:/etc/letsencrypt/live:ro
-      - /etc/letsencrypt/archive:/etc/letsencrypt/archive:ro
     logging:
       options:
         max-file: 3

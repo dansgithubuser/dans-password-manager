@@ -99,13 +99,10 @@ if args.docker_create_env_file:
         secrets.choice(string.ascii_letters + string.digits)
         for i in range(32)
     )
-    print('domain:')
-    domain = input()
     print('database password:')
     db_pw = input()
     with open('env.txt', 'w') as f:
         f.write(f'DANS_PASSWORD_MANAGER_SECRET_KEY={secret_key}\n')
-        f.write(f'DOMAIN={domain}\n')
         f.write(f'DB_DANS_PASSWORD_MANAGER_PASSWORD={db_pw}\n')
         f.write('DB_DANS_PASSWORD_MANAGER_HOST=db\n')
 
