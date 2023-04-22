@@ -27,6 +27,6 @@ RUN DANS_PASSWORD_MANAGER_SECRET_KEY=x python3 manage.py collectstatic --no-inpu
 EXPOSE 8001
 
 ENTRYPOINT gunicorn\
-	-w 4\
+	-w 1\
 	-b 0.0.0.0:8001\
 	proj_dans_password_manager.wsgi:application
