@@ -1,110 +1,76 @@
 <template>
-  <v-container>
-    <v-btn v-if='isDev()' @click='test' style='position:fixed; right:0; z-index:100'>test</v-btn>
-    <v-expansion-panels>
-      <!-- signup -->
-      <v-expansion-panel>
-        <v-expansion-panel-header>signup</v-expansion-panel-header>
-        <v-expansion-panel-content>
-          <v-text-field v-model='signupUsername' label='username'/>
-          <v-text-field v-model='signupPassword' label='password' :type='"password"'/>
-          <v-text-field v-model='signupPasswordConfirmation' label='confirm password' :type='"password"'/>
-          <v-btn @click='signup'>signup</v-btn>
-        </v-expansion-panel-content>
-      </v-expansion-panel>
-      <!-- login -->
-      <v-expansion-panel>
-        <v-expansion-panel-header>login</v-expansion-panel-header>
-        <v-expansion-panel-content>
-          <v-text-field v-model='loginUsername' label='username'/>
-          <v-text-field v-model='loginPassword' label='password' :type='"password"'/>
-          <v-btn @click='login'>login</v-btn>
-          <template v-if='username'>
-            logged in as {{username}}
-          </template>
-        </v-expansion-panel-content>
-      </v-expansion-panel>
-      <!-- create team -->
-      <v-expansion-panel>
-        <v-expansion-panel-header>create team</v-expansion-panel-header>
-        <v-expansion-panel-content>
-          <v-text-field v-model='teamCreateName' label='name'/>
-          <v-btn @click='teamCreate'>create team</v-btn>
-        </v-expansion-panel-content>
-      </v-expansion-panel>
-      <!-- items -->
-      <v-expansion-panel>
-        <v-expansion-panel-header>items</v-expansion-panel-header>
-        <v-expansion-panel-content>
-          <v-expansion-panels>
-            <v-expansion-panel v-for='(team, i) in teams' :key='i'>
-              <v-expansion-panel-header>
-                {{ team.name }}
-              </v-expansion-panel-header>
-              <v-expansion-panel-content>
-                <v-list>
-                  <v-list-item>
-                    <v-text-field v-model='teamToFilter[team.id]' label='filter'/>
-                  </v-list-item>
-                  <v-list-item>
-                    <Item :item='itemCreate' :teamId='team.id' :updateItems='updateItems' :create=true @value='itemCreate.value = $event' />
-                  </v-list-item>
-                  <v-list-item v-for='(item, j) in filterItems(team.id)' :key='j'>
-                    <Item :item='item' :teamId='team.id' :updateItems='updateItems'/>
-                  </v-list-item>
-                </v-list>
-              </v-expansion-panel-content>
-            </v-expansion-panel>
-          </v-expansion-panels>
-        </v-expansion-panel-content>
-      </v-expansion-panel>
-      <!-- verify -->
-      <v-expansion-panel>
-        <v-expansion-panel-header>verify</v-expansion-panel-header>
-        <v-expansion-panel-content>
-          <v-text-field v-model='verifyUsername' label='username'/>
-          <v-autocomplete v-model='verifyTeam' label='team' :items=teamNames />
-          <v-btn @click='verify'>verify</v-btn>
-          <v-list>
-            <v-list-item v-for='(value, i) in verificationValues' :key='i'>
-              <v-text-field v-model='verificationValues[i]' label='value' readonly=true />
-            </v-list-item>
-          </v-list>
-        </v-expansion-panel-content>
-      </v-expansion-panel>
-      <!-- invite -->
-      <v-expansion-panel>
-        <v-expansion-panel-header>invite</v-expansion-panel-header>
-        <v-expansion-panel-content>
-          <v-text-field v-model='inviteUsername' label='username'/>
-          <v-autocomplete v-model='inviteTeam' label='team' :items=teamNames />
-          <v-text-field v-model='inviteVerificationValue' label='verification value'/>
-          <v-btn @click='invite'>invite</v-btn>
-        </v-expansion-panel-content>
-      </v-expansion-panel>
-      <!-- revoke -->
-      <v-expansion-panel>
-        <v-expansion-panel-header>revoke</v-expansion-panel-header>
-        <v-expansion-panel-content>
-          <v-text-field v-model='revokeUsername' label='username'/>
-          <v-autocomplete v-model='revokeTeam' label='team' :items=teamNames />
-          <v-btn @click='revoke'>revoke</v-btn>
-        </v-expansion-panel-content>
-      </v-expansion-panel>
-    </v-expansion-panels>
-  </v-container>
+  <button v-if='isDev()' @click='test' style='position:fixed; right:0; z-index:100'>test</button>
+  <!-- signup -->
+  <Collapse label="signup">
+    <Input v-model='signupUsername' label='username'/>
+    <Input v-model='signupPassword' label='password' type='password'/>
+    <Input v-model='signupPasswordConfirmation' label='confirm password' type='password'/>
+    <button @click='signup'>signup</button>
+  </Collapse>
+  <!-- login -->
+  <Collapse label="login">
+    <Input v-model='loginUsername' label='username'/>
+    <Input v-model='loginPassword' label='password' type='password'/>
+    <button @click='login'>login</button>
+    <template v-if='username'>
+      logged in as {{username}}
+    </template>
+  </Collapse>
+  <!-- create team -->
+  <Collapse label="create team">
+    <Input v-model='teamCreateName' label='name'/>
+    <button @click='teamCreate'>create team</button>
+  </Collapse>
+  <!-- items -->
+  <Collapse label="items">
+    <Collapse v-for='(team, i) in teams' :key='i' :label="team.name">
+      <Input v-model='teamToFilter[team.id]' label='filter'/>
+      <Item :item='itemCreate' :teamId='team.id' :updateItems='updateItems' :create=true @value='itemCreate.value = $event' />
+      <Item :item='item' :teamId='team.id' :updateItems='updateItems'/>
+    </Collapse>
+  </Collapse>
+  <!-- verify -->
+  <Collapse label="verify">
+    <Input v-model='verifyUsername' label='username'/>
+    <Search v-model='verifyTeam' label='team' :options=teamNames />
+    <button @click='verify'>verify</button>
+    <div>
+      <p v-for='(value, i) in verificationValues' :key='i'>
+        {{ verificationValues[i] }}
+      </p>
+    </div>
+  </Collapse>
+  <!-- invite -->
+  <Collapse label="invite">
+    <Input v-model='inviteUsername' label='username'/>
+    <Search v-model='inviteTeam' label='team' :options=teamNames />
+    <Input v-model='inviteVerificationValue' label='verification value'/>
+    <button @click='invite'>invite</button>
+  </Collapse>
+  <!-- revoke -->
+  <Collapse label="revoke">
+    <Input v-model='revokeUsername' label='username'/>
+    <Search v-model='revokeTeam' label='team' :options=teamNames />
+    <button @click='revoke'>revoke</button>
+  </Collapse>
 </template>
 
 <script>
+
+import Collapse from './Collapse.vue'
+import Input from './Input.vue'
 import Item from './Item.vue'
+import Search from './Search.vue'
 
 import api from '../api.js'
-import uuidv4 from 'uuid/v4'
 
 export default {
   name: 'Main',
   components: {
+    Collapse,
+    Input,
     Item,
+    Search,
   },
   data: () => ({
     signupUsername: '',
@@ -206,7 +172,7 @@ export default {
     async test() {
       const password = 'jjo8OSD8882m3osidmcsuoOSID823mIOSDmoim';
       // single-user stuff
-      const user1 = uuidv4();
+      const user1 = self.crypto.randomUUID();
       console.log('user1:', user1); // eslint-disable-line no-console
       await api.signup(user1, password, password);
       await api.teamCreate('test-team-name');
@@ -223,7 +189,7 @@ export default {
       var items = await api.itemList(team);
       if (items[0].value != 'test-item-value') console.error('wrong value for user1!'); // eslint-disable-line no-console
       // invite
-      const user2 = uuidv4();
+      const user2 = self.crypto.randomUUID();
       console.log('user2:', user2); // eslint-disable-line no-console
       await api.signup(user2, password, password);
       await api.login(user1, password);
@@ -256,4 +222,13 @@ export default {
     this.console = console;
   },
 }
+
 </script>
+
+<style>
+
+.dans-collapse-body {
+  padding: 1rem;
+}
+
+</style>
