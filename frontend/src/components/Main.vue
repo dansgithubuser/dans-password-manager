@@ -224,11 +224,3 @@ export default {
 }
 
 </script>
-
-<style>
-
-.dans-collapse-body {
-  padding: 1rem;
-}
-
-</style>

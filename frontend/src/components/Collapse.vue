@@ -29,7 +29,7 @@ export default {
 <style scoped>
 
 .dans-collapse-header {
-  border-bottom: 1px solid;
+  border-bottom: 1px solid grey;
   cursor: pointer;
   display: flex;
   flex-direction: row;
@@ -37,9 +37,11 @@ export default {
 }
 
 .dans-collapse-body {
-  border-left: 1px solid;
-  border-right: 1px solid;
-  border-bottom: 1px solid;
+  border-left: 1px solid grey;
+  border-right: 1px solid grey;
+  border-bottom: 1px solid grey;
+  padding: 1rem;
+  box-shadow: 0px 0px 0.25rem grey inset;
 }
 
 </style>
