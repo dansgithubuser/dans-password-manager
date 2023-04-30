@@ -15,7 +15,7 @@ args = parser.parse_args()
 
 if args.frontend_run:
     os.chdir('frontend')
-    djangogo.invoke('npm', 'run', 'serve')
+    djangogo.invoke('npm', 'run', 'dev')
 else: djangogo.main(args,
     project='proj_dans_password_manager',
     app='dans_password_manager',

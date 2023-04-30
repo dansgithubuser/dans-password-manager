@@ -12,30 +12,6 @@
   resize: none;
 }
 
-.label {
-  font-size: small;
-  color: gray;
-}
-
-.border {
-  border-style: solid;
-}
-.bg-lightgray {
-  background-color: lightgray;
-}
-
-.row {
-  display: flex;
-}
-.col {
-  display: flex;
-  flex-direction: column;
-}
-
-.mb {
-  margin-bottom: 1em;
-}
-
 .hidden {
   visibility: hidden;
 }
@@ -43,33 +19,30 @@
 </style>
 
 <template>
-  <div class='row'>
+  <div class='row spaced-h'>
     <div class='col'>
-      <label class='label'>name</label>
-      <input v-model='item.name' class='border mb'/>
-      <label class='label'>target</label>
-      <input v-model='item.target' class='border mb'/>
+      <Input v-model='item.name' label='name'/>
+      <Input v-model='item.target' label='target'/>
     </div>
     <div class='col'>
-      <label class='label'>user</label>
-      <input v-model='item.user' class='border mb'/>
-      <label class='label'>value</label>
-      <input v-model='item.value' class='border mb value'/>
+      <Input v-model='item.user' label='user'/>
+      <Input v-model='item.value' label='value' class='value'/>
     </div>
     <div class='col'>
-      <label class='label'>notes</label>
-      <textarea v-model='item.notes' class='border mb notes' style='height: 100%'/>
+      <small class='dans-label'>notes</small>
+      <textarea v-model='item.notes' class='notes' style='height: 100%'/>
     </div>
     <div class='col'>
       <template v-if='!create'>
-        <label class='hidden'>x</label>
-        <button @click='itemUpdate(item, teamId)' class='bg-lightgray mb'>update item</button>
+        <small class='hidden'>x</small>
+        <button @click='itemUpdate(item, teamId)'>update item</button>
       </template>
       <template v-else>
-        <label class='hidden'>x</label>
-        <button @click='itemCreate(teamId)' class='bg-lightgray mb'>create item</button>
-        <label class='hidden'>x</label>
-        <button @click='random()' class='bg-lightgray mb'>random</button>
+        <small class='hidden'>x</small>
+        <div class="col" style="flex-grow: 1; justify-content: space-between">
+          <button @click='itemCreate(teamId)'>create item</button>
+          <button @click='random()'>random</button>
+        </div>
       </template>
     </div>
   </div>
@@ -77,9 +50,15 @@
 
 <script>
 
+import Input from './Input.vue'
+
 import api from '../api.js'
 
 export default {
+  name: 'Item',
+  components: {
+    Input,
+  },
   props: {
     item: Object,
     teamId: Number,

@@ -1,21 +1,9 @@
-<template>
-  <v-app>
-    <v-content>
-      <Main/>
-    </v-content>
-  </v-app>
-</template>
+<script setup>
 
-<script>
-import Main from './components/Main';
+import Main from './components/Main.vue';
 
-export default {
-  name: 'App',
-  components: {
-    Main,
-  },
-  data: () => ({
-    //
-  }),
-};
 </script>
+
+<template>
+  <Main />
+</template>

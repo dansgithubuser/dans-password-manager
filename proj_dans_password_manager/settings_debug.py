@@ -3,10 +3,15 @@ from .settings import *
 DEBUG = True
 ALLOWED_HOSTS = ['*']
 
+MIDDLEWARE.remove('django.middleware.csrf.CsrfViewMiddleware')
+
 del SECURE_HSTS_SECONDS
 del SECURE_CONTENT_TYPE_NOSNIFF
 del SECURE_BROWSER_XSS_FILTER
-del SECURE_SSL_REDIRECT
+try:
+    del SECURE_SSL_REDIRECT
+except:
+    pass
 del SESSION_COOKIE_SECURE
 del CSRF_COOKIE_SECURE
 del X_FRAME_OPTIONS

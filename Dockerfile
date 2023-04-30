@@ -1,10 +1,10 @@
-FROM node:lts-buster-slim
+FROM node:18-buster-slim
 COPY frontend .
 RUN npm ci
 RUN npm run build
 
 
-FROM python:3-slim-buster
+FROM python:3.10-slim-buster
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
