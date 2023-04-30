@@ -12,6 +12,14 @@
   margin: 1rem;
 }
 
+.spaced-h > *:nth-child(n+2) {
+  margin-left: 1rem;
+}
+
+.spaced-v > *:nth-child(n+2) {
+  margin-top: 1rem;
+}
+
 .m1 {
   margin: 1rem;
 }
@@ -30,4 +38,8 @@
 
 .m1b {
   margin-bottom: 1rem;
+}
+
+.dans-label {
+  opacity: 0.5;
 }

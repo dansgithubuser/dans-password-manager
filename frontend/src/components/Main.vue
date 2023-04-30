@@ -25,8 +25,21 @@
   <Collapse label="items">
     <Collapse v-for='(team, i) in teams' :key='i' :label="team.name">
       <Input v-model='teamToFilter[team.id]' label='filter'/>
-      <Item :item='itemCreate' :teamId='team.id' :updateItems='updateItems' :create=true @value='itemCreate.value = $event' />
-      <Item :item='item' :teamId='team.id' :updateItems='updateItems'/>
+      <Item
+        :item='itemCreate'
+        :teamId='team.id'
+        :updateItems='updateItems'
+        :create=true
+        @value='itemCreate.value = $event'
+        class="m1t"
+      />
+      <Item
+        v-for='(item, j) in filterItems(team.id)'
+        :item='item'
+        :teamId='team.id'
+        :updateItems='updateItems'
+        class="m1t"
+      />
     </Collapse>
   </Collapse>
   <!-- verify -->
@@ -127,7 +140,7 @@ export default {
       for (const team of this.teams) this.updateItems(team.id);
     },
     async updateItems(teamId) {
-      this.$set(this.teamToItems, teamId, await api.itemList(teamId));
+      this.teamToItems[teamId] = await api.itemList(teamId);
     },
     filterItems(teamId) {
       const filter = this.teamToFilter[teamId];
