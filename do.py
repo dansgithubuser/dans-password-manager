@@ -16,6 +16,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--docker-build', '--dkrb', action='store_true')
 parser.add_argument('--docker-create-env-file', '--dkre', action='store_true')
 parser.add_argument('--docker-run', '--dkrr', action='store_true')
+parser.add_argument('--docker-db-setup', '--dkrd', action='store_true')
 args = parser.parse_args()
 
 #===== consts =====#
@@ -108,3 +109,24 @@ if args.docker_create_env_file:
 
 if args.docker_run:
     invoke('docker compose up -d')
+
+if args.docker_db_setup:
+    db = 'db_dans_password_manager'
+    user = 'u_dans_password_manager'
+    with open('env.txt', 'r') as f:
+        lines = f.readlines()
+    for line in lines:
+        if line.startswith('DB_DANS_PASSWORD_MANAGER_PASSWORD'):
+            password = line.split('=', 1)[1].strip()
+    def psql(command, db=None):
+        if db:
+            db = f'-d {db}'
+        else:
+            db = ''
+        invoke(*[*f'docker exec -u postgres pwm-db psql {db} -c'.split(), command])
+    psql('CREATE DATABASE db_dans_password_manager')
+    psql(f"CREATE USER {user} WITH PASSWORD '{password}'")
+    psql(f'ALTER ROLE {user} SET client_encoding TO utf8')
+    psql(f'ALTER ROLE {user} SET default_transaction_isolation TO "read committed"')
+    psql(f'ALTER ROLE {user} SET timezone TO UTC')
+    psql(f'GRANT ALL PRIVILEGES ON DATABASE {db} TO {user}')
